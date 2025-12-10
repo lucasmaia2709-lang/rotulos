@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <!-- --- Configurações PWA e iOS --- -->
+    <title>Sommelier AI</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Sommelier">
+    <meta name="theme-color" content="#4a0404">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
+    
+    <!-- Ícones Lucide -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        h1, h2, .serif-font { font-family: 'Playfair Display', serif; }
+        
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Ajuste Seguro iOS */
+        .pt-safe-top { padding-top: calc(env(safe-area-inset-top) + 20px); }
+        .pb-safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+        
+        /* Efeito de Vidro (Glassmorphism) */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.90);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+
+        .glass-dark {
+            background: rgba(40, 10, 10, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        /* Inputs Personalizados */
+        .input-wine {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            background-color: rgba(255, 255, 255, 0.8);
+            outline: none;
+            transition: all 0.2s;
+        }
+        .input-wine:focus {
+            border-color: #720e1e;
+            ring: 2px;
+            box-shadow: 0 0 0 3px rgba(114, 14, 30, 0.1);
+        }
+
+        /* Animações */
+        .fade-enter { opacity: 0; transform: scale(0.98); }
+        .fade-enter-active { opacity: 1; transform: scale(1); transition: opacity 300ms, transform 300ms cubic-bezier(0.16, 1, 0.3, 1); }
+        .btn-press:active { transform: scale(0.97); transition: transform 0.1s; }
+        
+        /* Gradientes de Vinho */
+        .bg-wine-gradient { background: linear-gradient(135deg, #720e1e 0%, #4a0404 100%); }
+        .text-wine { color: #720e1e; }
+        
+        @keyframes blob {
+            0% { transform: translate(0px, 0px) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+            100% { transform: translate(0px, 0px) scale(1); }
+        }
+        .animate-blob { animation: blob 7s infinite; }
+        .animation-delay-2000 { animation-delay: 2s; }
+        .animation-delay-4000 { animation-delay: 4s; }
+    </style>
+</head>
+<body class="bg-[#fcfbf9] min-h-screen text-gray-800 antialiased overflow-hidden">
+    
+    <!-- Fundo Decorativo -->
+    <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+        <div class="absolute -top-[20%] -left-[10%] w-[70%] h-[70%] bg-red-900 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+        <div class="absolute top-[10%] -right-[10%] w-[60%] h-[60%] bg-purple-900 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+        <div class="absolute -bottom-[20%] left-[20%] w-[60%] h-[60%] bg-orange-900 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-4000"></div>
+    </div>
+
+    <!-- --- Script PWA Ícone Dinâmico --- -->
+    <script>
+        (function() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512; canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+            const grd = ctx.createLinearGradient(0, 0, 0, 512);
+            grd.addColorStop(0, "#720e1e"); grd.addColorStop(1, "#2b0202");
+            ctx.fillStyle = grd; ctx.fillRect(0, 0, 512, 512);
+            ctx.font = '300px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; 
+            ctx.fillText('🍷', 256, 256);
+            const iconUrl = canvas.toDataURL('image/png');
+            let link = document.querySelector("link[rel*='icon']") || document.createElement('link');
+            link.type = 'image/png'; link.rel = 'shortcut icon'; link.href = iconUrl;
+            document.head.appendChild(link);
+            let appleLink = document.querySelector("link[rel='apple-touch-icon']") || document.createElement('link');
+            appleLink.rel = 'apple-touch-icon'; appleLink.href = iconUrl;
+            document.head.appendChild(appleLink);
+        })();
+    </script>
+
+    <!-- ================================================================== -->
+    <!-- TELA 1: AUTH (Login / Registro / Reset) -->
+    <!-- ================================================================== -->
+    <div id="view-auth" class="fixed inset-0 z-50 flex flex-col justify-center px-6 pt-safe-top pb-safe-bottom bg-white/30 backdrop-blur-md transition-all duration-500 overflow-y-auto">
+        <div class="w-full max-w-sm mx-auto my-auto">
+            <div class="text-center mb-8">
+                <div class="inline-block p-4 rounded-full bg-wine-gradient shadow-2xl mb-4 text-4xl border-4 border-white/20">🍷</div>
+                <h1 class="text-3xl font-bold text-gray-900 tracking-tight">Sommelier AI</h1>
+                <p class="text-gray-600 font-serif italic text-sm">Sua adega inteligente.</p>
+            </div>
+
+            <div class="glass-panel p-8 rounded-3xl shadow-xl transition-all duration-300">
+                
+                <!-- MENSAGEM DE ERRO/SUCESSO GLOBAL -->
+                <div id="auth-message" class="hidden mb-4 p-3 rounded-lg text-sm text-center font-medium"></div>
+
+                <!-- FORM: LOGIN -->
+                <form id="form-login" class="space-y-4">
+                    <h2 class="text-xl font-bold text-gray-800 text-center mb-6">Entrar</h2>
+                    <div>
+                        <input type="email" id="login-email" class="input-wine" placeholder="Email" required>
+                    </div>
+                    <div>
+                        <input type="password" id="login-pass" class="input-wine" placeholder="Senha" required>
+                        <div class="text-right mt-1">
+                            <button type="button" id="btn-forgot" class="text-xs text-wine/80 hover:text-wine font-medium">Esqueceu a senha?</button>
+                        </div>
+                    </div>
+                    <button type="submit" id="btn-submit-login" class="btn-press w-full bg-wine-gradient text-white font-bold py-3.5 rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2">
+                        Entrar
+                    </button>
+                    <div class="text-center pt-2">
+                        <span class="text-xs text-gray-500">Não tem conta?</span>
+                        <button type="button" id="btn-to-register" class="text-xs font-bold text-wine hover:underline ml-1">Cadastre-se</button>
+                    </div>
+                </form>
+
+                <!-- FORM: REGISTRO -->
+                <form id="form-register" class="hidden space-y-4">
+                    <h2 class="text-xl font-bold text-gray-800 text-center mb-6">Criar Conta</h2>
+                    <div>
+                        <input type="email" id="reg-email" class="input-wine" placeholder="Seu Email" required>
+                    </div>
+                    <div>
+                        <input type="password" id="reg-pass" class="input-wine" placeholder="Senha (mín. 6 caracteres)" required minlength="6">
+                    </div>
+                    <button type="submit" id="btn-submit-register" class="btn-press w-full bg-gray-900 text-white font-bold py-3.5 rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2">
+                        Cadastrar
+                    </button>
+                    <div class="text-center pt-2">
+                        <span class="text-xs text-gray-500">Já possui conta?</span>
+                        <button type="button" id="btn-to-login" class="text-xs font-bold text-wine hover:underline ml-1">Faça Login</button>
+                    </div>
+                </form>
+
+                <!-- FORM: RECUPERAR SENHA -->
+                <form id="form-reset" class="hidden space-y-4">
+                    <h2 class="text-xl font-bold text-gray-800 text-center mb-2">Recuperar Senha</h2>
+                    <p class="text-xs text-gray-500 text-center mb-4">Digite seu email para receber o link.</p>
+                    <div>
+                        <input type="email" id="reset-email" class="input-wine" placeholder="Seu Email" required>
+                    </div>
+                    <button type="submit" id="btn-submit-reset" class="btn-press w-full bg-wine-gradient text-white font-bold py-3.5 rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2">
+                        Enviar Email
+                    </button>
+                    <div class="text-center pt-2">
+                        <button type="button" id="btn-reset-back" class="text-xs font-medium text-gray-500 hover:text-gray-800">Voltar</button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================================== -->
+    <!-- TELA 2: HOME (Dashboard) -->
+    <!-- ================================================================== -->
+    <div id="view-home" class="hidden fixed inset-0 z-40 flex flex-col px-6 pt-safe-top pb-safe-bottom overflow-y-auto">
+        <div class="flex justify-between items-center mt-4 mb-8">
+            <div>
+                <p class="text-sm text-gray-500 font-medium uppercase tracking-wide">Minha Adega</p>
+                <h1 id="home-user-name" class="text-3xl font-bold text-gray-900 truncate max-w-[200px] text-wine">Sommelier</h1>
+            </div>
+            <button id="btn-logout" class="p-2 rounded-full bg-white shadow-sm border border-gray-100 text-gray-400 hover:text-red-800 transition-colors">
+                <i data-lucide="log-out" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <!-- Frase do dia -->
+        <div class="glass-dark p-6 rounded-3xl mb-8 relative overflow-hidden shadow-lg">
+            <div class="absolute -right-4 -top-4 text-9xl opacity-10 font-serif">"</div>
+            <p id="daily-quote" class="text-gray-100 italic font-serif relative z-10 text-lg leading-relaxed">"O vinho melhora com o tempo. Eu melhoro com o vinho."</p>
+            <div class="flex items-center gap-2 mt-4 opacity-70">
+                <div class="h-[1px] bg-white w-8"></div>
+                <p class="text-xs font-bold uppercase tracking-widest">Dose de Sabedoria</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-5">
+            <!-- Botão Scan -->
+            <button id="btn-go-scan" class="btn-press group relative h-48 w-full rounded-3xl overflow-hidden shadow-xl transition-all">
+                <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?auto=format&fit=crop&q=80')] bg-cover bg-center"></div>
+                <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+                <div class="absolute inset-0 p-6 flex flex-col justify-end text-white">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-2xl font-bold font-serif mb-1">Ler Rótulo</h3>
+                            <p class="text-gray-300 text-sm">Analise vinhos com IA</p>
+                        </div>
+                        <div class="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/30">
+                            <i data-lucide="camera" class="w-6 h-6"></i>
+                        </div>
+                    </div>
+                </div>
+            </button>
+
+            <!-- Botão Catálogo -->
+            <button id="btn-go-catalog" class="btn-press group relative h-32 w-full rounded-3xl overflow-hidden shadow-lg bg-white border border-gray-200">
+                <div class="absolute inset-0 p-6 flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center text-wine">
+                            <i data-lucide="library" class="w-7 h-7"></i>
+                        </div>
+                        <div class="text-left">
+                            <h3 class="text-xl font-bold text-gray-800">Coleção</h3>
+                            <p class="text-gray-400 text-sm">Seus vinhos salvos</p>
+                        </div>
+                    </div>
+                    <i data-lucide="chevron-right" class="text-gray-300"></i>
+                </div>
+            </button>
+        </div>
+        
+        <p class="text-center text-xs text-gray-400 mt-auto mb-4 opacity-50">Powered by Gemini AI</p>
+    </div>
+
+    <!-- ================================================================== -->
+    <!-- TELA 3: SCANNER -->
+    <!-- ================================================================== -->
+    <div id="view-scan" class="hidden fixed inset-0 z-50 flex flex-col bg-[#fcfbf9] overflow-y-auto">
+        <div class="pt-safe-top px-4 py-4 flex items-center sticky top-0 bg-[#fcfbf9]/90 backdrop-blur-md z-30 border-b border-gray-200">
+            <button id="btn-back-home" class="p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors">
+                <i data-lucide="arrow-left" class="w-6 h-6 text-gray-700"></i>
+            </button>
+            <h2 class="text-lg font-bold text-gray-900 ml-2">Analisar Vinho</h2>
+        </div>
+
+        <div class="p-6 pb-20 max-w-2xl mx-auto w-full">
+            <div class="mb-6">
+                <label for="file-upload" class="group relative flex flex-col items-center justify-center w-full aspect-[3/4] border-2 border-dashed border-gray-300 rounded-3xl cursor-pointer bg-white shadow-sm hover:bg-gray-50 transition-all overflow-hidden">
+                    <img id="image-preview" src="" class="hidden absolute inset-0 w-full h-full object-cover z-10" />
+                    <div id="upload-prompt" class="flex flex-col items-center justify-center pt-5 pb-6 z-0 transition-transform group-hover:scale-105">
+                        <div class="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mb-4">
+                            <i data-lucide="scan-line" class="w-8 h-8 text-wine"></i>
+                        </div>
+                        <p class="mb-1 text-lg font-bold text-gray-700">Tirar Foto do Rótulo</p>
+                        <p class="text-xs text-gray-400">ou escolher da galeria</p>
+                    </div>
+                    <input id="file-upload" type="file" class="hidden" accept="image/*" capture="environment" />
+                    
+                    <button id="btn-reset-img" class="hidden absolute top-4 right-4 z-20 bg-black/50 text-white p-2 rounded-full backdrop-blur-md">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </label>
+            </div>
+
+            <button id="submit-button" disabled class="btn-press w-full bg-wine-gradient text-white font-bold py-4 px-6 rounded-2xl shadow-xl transition-all disabled:opacity-50 disabled:grayscale flex items-center justify-center text-lg gap-3">
+                <div id="loading-spinner" class="animate-spin hidden">
+                    <i data-lucide="loader-2" class="w-6 h-6"></i>
+                </div>
+                <span id="submit-button-text">Identificar Vinho</span>
+            </button>
+
+            <!-- RESULTADOS -->
+            <div id="results-section" class="hidden mt-8 space-y-6 animate-pulse-once">
+                <div id="save-success-msg" class="hidden glass-panel border border-green-200 bg-green-50 p-4 rounded-xl flex items-center gap-3">
+                    <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-700"><i data-lucide="check" class="w-4 h-4"></i></div>
+                    <span class="text-sm font-medium text-green-800">Vinho salvo na adega!</span>
+                </div>
+
+                <div class="bg-white p-6 rounded-3xl shadow-lg border border-gray-100 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-24 h-24 bg-red-50 rounded-bl-[100px] -mr-4 -mt-4 z-0"></div>
+                    <div class="relative z-10">
+                        <span id="res-type" class="text-xs font-bold tracking-widest uppercase text-wine bg-red-100 px-3 py-1 rounded-full mb-3 inline-block">Vinho Tinto</span>
+                        <h2 id="res-name" class="text-3xl font-bold text-gray-900 mb-2 font-serif leading-tight"></h2>
+                        <p id="res-region" class="text-gray-500 flex items-center gap-1 text-sm"><i data-lucide="map-pin" class="w-3 h-3"></i> <span class="val"></span></p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                        <div class="text-wine mb-2"><i data-lucide="thermometer" class="w-5 h-5"></i></div>
+                        <h4 class="text-xs font-bold text-gray-400 uppercase">Servir/Guardar</h4>
+                        <p id="res-storage" class="text-sm font-medium text-gray-800 mt-1"></p>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                        <div class="text-wine mb-2"><i data-lucide="grape" class="w-5 h-5"></i></div>
+                        <h4 class="text-xs font-bold text-gray-400 uppercase">Uvas</h4>
+                        <p id="res-grapes" class="text-sm font-medium text-gray-800 mt-1"></p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-700">
+                            <i data-lucide="utensils" class="w-5 h-5"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-800">Harmonização</h3>
+                    </div>
+                    <p id="res-pairing" class="text-gray-600 leading-relaxed"></p>
+                </div>
+
+                <div class="glass-dark p-6 rounded-3xl shadow-lg text-white">
+                    <h3 class="text-lg font-bold font-serif mb-3 border-b border-white/20 pb-2">Notas do Sommelier</h3>
+                    <p id="res-notes" class="text-gray-200 italic leading-relaxed text-sm"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================================== -->
+    <!-- TELA 4: CATÁLOGO (Adega) -->
+    <!-- ================================================================== -->
+    <div id="view-catalog" class="hidden fixed inset-0 z-50 flex flex-col bg-[#fcfbf9]">
+        <div class="pt-safe-top px-4 py-4 flex items-center sticky top-0 bg-[#fcfbf9]/90 backdrop-blur-md z-30 border-b border-gray-200">
+            <button id="btn-close-catalog" class="p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors">
+                <i data-lucide="arrow-left" class="w-6 h-6 text-gray-700"></i>
+            </button>
+            <h2 class="text-lg font-bold text-gray-900 ml-2">Minha Adega</h2>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-4 pb-20">
+            <div id="catalog-loader" class="flex justify-center mt-20">
+                <i data-lucide="loader" class="animate-spin w-8 h-8 text-wine"></i>
+            </div>
+            <div id="empty-catalog-msg" class="hidden flex flex-col items-center justify-center mt-20 text-gray-400 text-center">
+                <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4 opacity-50">
+                    <i data-lucide="wine" class="w-10 h-10"></i>
+                </div>
+                <p class="font-medium">Sua adega está vazia.</p>
+                <p class="text-sm mt-1">Escaneie um rótulo para começar.</p>
+            </div>
+            <div id="catalog-list" class="grid grid-cols-2 gap-4"></div>
+        </div>
+    </div>
+
+    <!-- ================================================================== -->
+    <!-- TELA 5: DETALHES (Modal) -->
+    <!-- ================================================================== -->
+    <div id="view-detail" class="hidden fixed inset-0 z-[2000] flex flex-col bg-white transform translate-y-full transition-transform duration-300 shadow-2xl">
+        <div class="relative h-[45vh] shrink-0 bg-gray-900">
+            <img id="detail-image" src="" class="w-full h-full object-cover opacity-80">
+            <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
+            
+            <div class="absolute top-0 left-0 w-full pt-safe-top px-4 flex justify-between items-start pointer-events-none z-20">
+                <button id="btn-close-detail" class="p-2 bg-black/20 backdrop-blur-md rounded-full text-white pointer-events-auto border border-white/20">
+                    <i data-lucide="chevron-down" class="w-6 h-6"></i>
+                </button>
+                <button id="btn-delete-item" class="p-2 bg-red-600/80 backdrop-blur-md rounded-full text-white pointer-events-auto shadow-lg border border-red-500">
+                     <i data-lucide="trash-2" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="absolute bottom-0 left-0 right-0 p-6">
+                <span id="detail-type" class="text-[10px] font-bold tracking-widest uppercase bg-white/20 backdrop-blur-sm text-white px-2 py-1 rounded-md mb-2 inline-block"></span>
+                <h2 id="detail-title" class="text-3xl font-bold text-white font-serif leading-tight shadow-sm"></h2>
+                <p id="detail-region" class="text-gray-300 text-sm mt-1 flex items-center gap-1"><i data-lucide="map-pin" class="w-3 h-3"></i> <span></span></p>
+            </div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto bg-white -mt-6 rounded-t-3xl relative z-10 px-6 pt-8 pb-10">
+            <div class="space-y-6">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-gray-50 p-4 rounded-xl">
+                        <p class="text-xs text-gray-500 uppercase font-bold">Uvas</p>
+                        <p id="detail-grapes" class="text-sm font-medium text-gray-800"></p>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-xl">
+                        <p class="text-xs text-gray-500 uppercase font-bold">Armazenamento</p>
+                        <p id="detail-storage" class="text-sm font-medium text-gray-800"></p>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="font-bold text-gray-900 flex items-center gap-2 mb-2">
+                        <i data-lucide="utensils" class="w-4 h-4 text-wine"></i> Harmonização
+                    </h3>
+                    <p id="detail-pairing" class="text-gray-600 leading-relaxed text-sm"></p>
+                </div>
+
+                <div class="bg-[#4a0404] text-white p-5 rounded-2xl shadow-inner">
+                    <h3 class="font-serif text-lg mb-2 border-b border-white/10 pb-2">Notas</h3>
+                    <p id="detail-notes" class="italic text-gray-300 text-sm"></p>
+                </div>
+                
+                <p id="detail-date" class="text-center text-xs text-gray-300 mt-4"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- FIREBASE & LOGIC -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signOut, signInWithCustomToken, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, deleteDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+        // --- CONFIGURAÇÃO ---
+        
+        // NOTA: Para rodar no preview, usamos a config injetada (__firebase_config).
+        // Para rodar no seu servidor/dominio, substitua pela sua config abaixo:
+        /*
+        const firebaseConfig = {
+            apiKey: "AIzaSyDPwBp5cNCr80IpY1EMLvtVnWFHssvxlMY",
+            authDomain: "rotulos-9e0cb.firebaseapp.com",
+            projectId: "rotulos-9e0cb",
+            storageBucket: "rotulos-9e0cb.firebasestorage.app",
+            messagingSenderId: "607613417398",
+            appId: "1:607613417398:web:f7ef415f033ba67fd93317",
+            measurementId: "G-KWWHDJCLQZ"
+        };
+        */
+       
+        // Mantendo compatibilidade com Preview:
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const appId = __app_id; 
+        
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // CLOUDFLARE WORKER URL
+        const GEN_API_URL = "https://rotulos.lucasmaia2709.workers.dev";
+
+        // --- UI REFERENCES ---
+        const ui = {
+            views: {
+                auth: document.getElementById('view-auth'),
+                home: document.getElementById('view-home'),
+                scan: document.getElementById('view-scan'),
+                catalog: document.getElementById('view-catalog'),
+                detail: document.getElementById('view-detail')
+            },
+            auth: {
+                message: document.getElementById('auth-message'),
+                // Forms
+                formLogin: document.getElementById('form-login'),
+                formRegister: document.getElementById('form-register'),
+                formReset: document.getElementById('form-reset'),
+                // Inputs Login
+                loginEmail: document.getElementById('login-email'),
+                loginPass: document.getElementById('login-pass'),
+                btnLogin: document.getElementById('btn-submit-login'),
+                // Inputs Register
+                regEmail: document.getElementById('reg-email'),
+                regPass: document.getElementById('reg-pass'),
+                btnRegister: document.getElementById('btn-submit-register'),
+                // Inputs Reset
+                resetEmail: document.getElementById('reset-email'),
+                btnReset: document.getElementById('btn-submit-reset'),
+                // Navigation
+                linkToRegister: document.getElementById('btn-to-register'),
+                linkToLogin: document.getElementById('btn-to-login'),
+                linkForgot: document.getElementById('btn-forgot'),
+                btnResetBack: document.getElementById('btn-reset-back')
+            },
+            home: {
+                userName: document.getElementById('home-user-name'),
+                btnLogout: document.getElementById('btn-logout'),
+                btnScan: document.getElementById('btn-go-scan'),
+                btnCatalog: document.getElementById('btn-go-catalog'),
+                quote: document.getElementById('daily-quote')
+            },
+            scan: {
+                btnBack: document.getElementById('btn-back-home'),
+                input: document.getElementById('file-upload'),
+                preview: document.getElementById('image-preview'),
+                prompt: document.getElementById('upload-prompt'),
+                btnReset: document.getElementById('btn-reset-img'),
+                btnSubmit: document.getElementById('submit-button'),
+                spinner: document.getElementById('loading-spinner'),
+                btnText: document.getElementById('submit-button-text'),
+                resSection: document.getElementById('results-section'),
+                fields: {
+                    name: document.getElementById('res-name'),
+                    type: document.getElementById('res-type'),
+                    region: document.getElementById('res-region').querySelector('.val'),
+                    storage: document.getElementById('res-storage'),
+                    grapes: document.getElementById('res-grapes'),
+                    pairing: document.getElementById('res-pairing'),
+                    notes: document.getElementById('res-notes')
+                },
+                successMsg: document.getElementById('save-success-msg')
+            },
+            catalog: {
+                btnClose: document.getElementById('btn-close-catalog'),
+                grid: document.getElementById('catalog-list'),
+                loader: document.getElementById('catalog-loader'),
+                empty: document.getElementById('empty-catalog-msg')
+            },
+            detail: {
+                el: document.getElementById('view-detail'),
+                btnClose: document.getElementById('btn-close-detail'),
+                btnDelete: document.getElementById('btn-delete-item'),
+                img: document.getElementById('detail-image'),
+                title: document.getElementById('detail-title'),
+                type: document.getElementById('detail-type'),
+                region: document.getElementById('detail-region').querySelector('span'),
+                grapes: document.getElementById('detail-grapes'),
+                storage: document.getElementById('detail-storage'),
+                pairing: document.getElementById('detail-pairing'),
+                notes: document.getElementById('detail-notes'),
+                date: document.getElementById('detail-date')
+            }
+        };
+
+        let currentUser = null;
+        let base64Image = null;
+        let currentDetailId = null;
+        let catalogUnsubscribe = null;
+
+        lucide.createIcons();
+
+        // --- NAVEGAÇÃO ---
+        function switchView(viewName) {
+            Object.keys(ui.views).forEach(k => {
+                if (k !== 'detail') ui.views[k].classList.add('hidden');
+            });
+            const target = ui.views[viewName];
+            target.classList.remove('hidden');
+            target.classList.add('fade-enter-active');
+            
+            if (viewName === 'catalog') loadCatalog();
+        }
+
+        // --- AUTH UI LOGIC ---
+        function showAuthMessage(msg, type = 'error') {
+            ui.auth.message.textContent = msg;
+            ui.auth.message.className = `mb-4 p-3 rounded-lg text-sm text-center font-medium ${type === 'error' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`;
+            ui.auth.message.classList.remove('hidden');
+        }
+
+        // Alternar formulários
+        ui.auth.linkToRegister.onclick = () => {
+            ui.auth.message.classList.add('hidden');
+            ui.auth.formLogin.classList.add('hidden');
+            ui.auth.formRegister.classList.remove('hidden');
+        };
+
+        ui.auth.linkToLogin.onclick = () => {
+            ui.auth.message.classList.add('hidden');
+            ui.auth.formRegister.classList.add('hidden');
+            ui.auth.formLogin.classList.remove('hidden');
+        };
+
+        ui.auth.linkForgot.onclick = () => {
+            ui.auth.message.classList.add('hidden');
+            ui.auth.formLogin.classList.add('hidden');
+            ui.auth.formReset.classList.remove('hidden');
+        };
+
+        ui.auth.btnResetBack.onclick = () => {
+            ui.auth.message.classList.add('hidden');
+            ui.auth.formReset.classList.add('hidden');
+            ui.auth.formLogin.classList.remove('hidden');
+        };
+
+        // --- AUTH BACKEND LOGIC ---
+        
+        // 1. LOGIN
+        ui.auth.formLogin.onsubmit = async (e) => {
+            e.preventDefault();
+            const email = ui.auth.loginEmail.value;
+            const pass = ui.auth.loginPass.value;
+            ui.auth.btnLogin.textContent = "Verificando...";
+            ui.auth.message.classList.add('hidden');
+
+            try {
+                await signInWithEmailAndPassword(auth, email, pass);
+                // O listener onAuthStateChanged cuidará do resto
+            } catch (error) {
+                console.error(error);
+                let msg = "Erro ao entrar.";
+                if(error.code === 'auth/invalid-credential') msg = "Email ou senha incorretos.";
+                if(error.code === 'auth/user-not-found') msg = "Usuário não encontrado.";
+                if(error.code === 'auth/wrong-password') msg = "Senha incorreta.";
+                showAuthMessage(msg, 'error');
+                ui.auth.btnLogin.textContent = "Entrar";
+            }
+        };
+
+        // 2. REGISTRO
+        ui.auth.formRegister.onsubmit = async (e) => {
+            e.preventDefault();
+            const email = ui.auth.regEmail.value;
+            const pass = ui.auth.regPass.value;
+            
+            ui.auth.btnRegister.textContent = "Criando...";
+            ui.auth.message.classList.add('hidden');
+
+            try {
+                await createUserWithEmailAndPassword(auth, email, pass);
+                // Auth listener fará o login automático
+            } catch (error) {
+                console.error(error);
+                let msg = "Erro ao criar conta.";
+                if(error.code === 'auth/email-already-in-use') msg = "Este email já está em uso.";
+                if(error.code === 'auth/weak-password') msg = "A senha deve ter pelo menos 6 caracteres.";
+                showAuthMessage(msg, 'error');
+                ui.auth.btnRegister.textContent = "Cadastrar";
+            }
+        };
+
+        // 3. RESET SENHA
+        ui.auth.formReset.onsubmit = async (e) => {
+            e.preventDefault();
+            const email = ui.auth.resetEmail.value;
+            ui.auth.btnReset.textContent = "Enviando...";
+            
+            try {
+                await sendPasswordResetEmail(auth, email);
+                showAuthMessage("Email de recuperação enviado! Verifique sua caixa de entrada.", "success");
+                ui.auth.resetEmail.value = "";
+            } catch (error) {
+                console.error(error);
+                showAuthMessage("Erro ao enviar email. Verifique o endereço.", "error");
+            } finally {
+                ui.auth.btnReset.textContent = "Enviar Email";
+            }
+        };
+
+        ui.home.btnLogout.onclick = () => signOut(auth);
+
+        onAuthStateChanged(auth, async (user) => {
+            // Se estiver no preview e tiver um token customizado, loga com ele primeiro
+            if (!user && typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                 try { await signInWithCustomToken(auth, __initial_auth_token); return; } catch(e){}
+            }
+
+            currentUser = user;
+            if (user) {
+                switchView('home');
+                generateWineQuote();
+            } else {
+                switchView('auth');
+            }
+        });
+
+        // --- SCANNER ---
+        ui.home.btnScan.onclick = () => switchView('scan');
+        ui.scan.btnBack.onclick = () => switchView('home');
+
+        ui.scan.input.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                ui.scan.preview.src = ev.target.result;
+                ui.scan.preview.classList.remove('hidden');
+                ui.scan.prompt.classList.add('hidden');
+                ui.scan.btnReset.classList.remove('hidden');
+                base64Image = ev.target.result.split(',')[1];
+                ui.scan.btnSubmit.disabled = false;
+                ui.scan.resSection.classList.add('hidden');
+            };
+            reader.readAsDataURL(file);
+        });
+
+        ui.scan.btnReset.onclick = (e) => {
+            e.preventDefault();
+            resetScan();
+        };
+
+        function resetScan() {
+            ui.scan.preview.classList.add('hidden');
+            ui.scan.prompt.classList.remove('hidden');
+            ui.scan.btnReset.classList.add('hidden');
+            ui.scan.input.value = '';
+            base64Image = null;
+            ui.scan.btnSubmit.disabled = true;
+            ui.scan.resSection.classList.add('hidden');
+            ui.scan.successMsg.classList.add('hidden');
+        }
+
+        // --- WORKER INTEGRATION LOGIC ---
+        ui.scan.btnSubmit.onclick = async () => {
+            if (!base64Image) return;
+            
+            setLoading(true);
+            
+            // O Prompt agora pode ficar no Worker para maior segurança e flexibilidade,
+            // mas enviaremos a imagem e o mimetype.
+            const payload = {
+                image: base64Image,
+                mimeType: "image/jpeg",
+                prompt: `
+                    Você é um sommelier especialista. Analise a imagem deste rótulo de vinho.
+                    Retorne APENAS um objeto JSON válido (sem markdown, sem \`\`\`json) com esta estrutura exata:
+                    {
+                        "nome": "Nome completo do vinho e safra se visivel",
+                        "tipo": "Tipo (Tinto, Branco, Rosé, Espumante)",
+                        "regiao": "Região e País",
+                        "uvas": "Castas prováveis",
+                        "armazenamento": "Instruções breves de temperatura e guarda",
+                        "harmonizacao": "Sugestão de 2 ou 3 pratos que combinam",
+                        "notas": "Breve descrição sensorial (aromas, corpo)"
+                    }
+                `
+            };
+
+            try {
+                // Chama o seu Worker
+                const response = await fetch(GEN_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) throw new Error("Erro na comunicação com o Worker");
+
+                const result = await response.json();
+                
+                // O Worker deve retornar o JSON já processado ou o texto do Gemini
+                let data = result;
+                
+                // Caso o Worker retorne o texto bruto do Gemini:
+                if (result.text) {
+                     const cleanJson = result.text.replace(/```json/g, '').replace(/```/g, '').trim();
+                     data = JSON.parse(cleanJson);
+                }
+
+                // Preencher UI
+                ui.scan.fields.name.textContent = data.nome;
+                ui.scan.fields.type.textContent = data.tipo;
+                ui.scan.fields.region.textContent = data.regiao;
+                ui.scan.fields.grapes.textContent = data.uvas;
+                ui.scan.fields.storage.textContent = data.armazenamento;
+                ui.scan.fields.pairing.textContent = data.harmonizacao;
+                ui.scan.fields.notes.textContent = data.notas;
+
+                ui.scan.resSection.classList.remove('hidden');
+                ui.scan.resSection.scrollIntoView({ behavior: 'smooth' });
+
+                await saveToFirestore(data);
+
+            } catch (error) {
+                console.error(error);
+                alert("Não foi possível identificar o vinho. Verifique a conexão ou tente novamente.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        function setLoading(state) {
+            ui.scan.btnSubmit.disabled = state;
+            if (state) {
+                ui.scan.spinner.classList.remove('hidden');
+                ui.scan.btnText.textContent = "Analisando Rótulo...";
+            } else {
+                ui.scan.spinner.classList.add('hidden');
+                ui.scan.btnText.textContent = "Identificar Vinho";
+            }
+        }
+
+        // --- FIRESTORE ---
+        async function saveToFirestore(data) {
+            if (!currentUser) return;
+            try {
+                const thumb = await compressImage(base64Image);
+                // Caminho rigoroso para preview
+                const winesRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'wines');
+                await addDoc(winesRef, { ...data, timestamp: serverTimestamp(), imageThumb: thumb });
+                ui.scan.successMsg.classList.remove('hidden');
+            } catch (e) {
+                console.error("Erro ao salvar:", e);
+            }
+        }
+
+        async function compressImage(b64) {
+            return new Promise(resolve => {
+                const img = new Image();
+                img.src = "data:image/jpeg;base64," + b64;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const scale = 300 / img.width;
+                    canvas.width = 300;
+                    canvas.height = img.height * scale;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    resolve(canvas.toDataURL('image/jpeg', 0.7));
+                };
+            });
+        }
+
+        // --- CATÁLOGO ---
+        ui.home.btnCatalog.onclick = () => switchView('catalog');
+        ui.catalog.btnClose.onclick = () => switchView('home');
+
+        function loadCatalog() {
+            if (!currentUser) return;
+            
+            ui.catalog.loader.classList.remove('hidden');
+            ui.catalog.empty.classList.add('hidden');
+            ui.catalog.grid.innerHTML = '';
+            
+            if (catalogUnsubscribe) catalogUnsubscribe();
+
+            const winesRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'wines');
+            const q = query(winesRef, orderBy('timestamp', 'desc'));
+
+            catalogUnsubscribe = onSnapshot(q, (snapshot) => {
+                ui.catalog.loader.classList.add('hidden');
+                ui.catalog.grid.innerHTML = '';
+
+                if (snapshot.empty) {
+                    ui.catalog.empty.classList.remove('hidden');
+                } else {
+                    snapshot.forEach(doc => {
+                        const item = { id: doc.id, ...doc.data() };
+                        createCatalogItem(item);
+                    });
+                }
+            }, (error) => {
+                console.error("Erro ler catálogo:", error);
+                ui.catalog.loader.classList.add('hidden');
+            });
+        }
+
+        function createCatalogItem(item) {
+            const div = document.createElement('div');
+            div.className = "relative w-full pb-[130%] rounded-2xl overflow-hidden shadow-md bg-white cursor-pointer active:scale-95 transition-transform border border-gray-100";
+            
+            div.innerHTML = `
+                <img src="${item.imageThumb}" class="absolute inset-0 w-full h-full object-cover">
+                <div class="absolute inset-0 bg-gradient-to-t from-[#4a0404] via-transparent to-transparent opacity-90"></div>
+                <div class="absolute bottom-0 left-0 right-0 p-3">
+                    <span class="text-[10px] bg-white/20 text-white px-2 py-0.5 rounded-sm uppercase tracking-wider mb-1 inline-block backdrop-blur-sm">${item.tipo || 'Vinho'}</span>
+                    <h3 class="text-white text-sm font-bold truncate font-serif">${item.nome}</h3>
+                    <p class="text-gray-300 text-[10px] truncate">${item.regiao || ''}</p>
+                </div>
+            `;
+            div.onclick = () => openDetail(item);
+            ui.catalog.grid.appendChild(div);
+        }
+
+        // --- DETALHES ---
+        function openDetail(item) {
+            currentDetailId = item.id;
+            ui.detail.img.src = item.imageThumb;
+            ui.detail.title.textContent = item.nome;
+            ui.detail.type.textContent = item.tipo;
+            ui.detail.region.textContent = item.regiao;
+            ui.detail.grapes.textContent = item.uvas;
+            ui.detail.storage.textContent = item.armazenamento;
+            ui.detail.pairing.textContent = item.harmonizacao;
+            ui.detail.notes.textContent = item.notas || "Sem notas.";
+            
+            if (item.timestamp) {
+                const date = item.timestamp.toDate ? item.timestamp.toDate() : new Date(item.timestamp);
+                ui.detail.date.textContent = "Degustado em " + date.toLocaleDateString('pt-BR');
+            }
+
+            ui.detail.el.classList.remove('hidden');
+            setTimeout(() => {
+                ui.detail.el.classList.remove('translate-y-full');
+            }, 10);
+        }
+
+        ui.detail.btnClose.onclick = closeDetail;
+
+        function closeDetail() {
+            ui.detail.el.classList.add('translate-y-full');
+            setTimeout(() => {
+                ui.detail.el.classList.add('hidden');
+            }, 300);
+        }
+
+        ui.detail.btnDelete.onclick = async () => {
+            if (!confirm("Remover este vinho da adega?")) return;
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'wines', currentDetailId);
+                await deleteDoc(docRef);
+                closeDetail();
+            } catch (e) {
+                alert("Erro ao apagar.");
+            }
+        };
+
+        function generateWineQuote() {
+            const quotes = [
+                "O vinho alegra o coração do homem.",
+                "Onde não há vinho, não há amor.",
+                "A vida é muito curta para beber vinho ruim.",
+                "O vinho é a poesia engarrafada.",
+                "Com pão e vinho, se anda o caminho."
+            ];
+            const random = quotes[Math.floor(Math.random() * quotes.length)];
+            ui.home.quote.textContent = `"${random}"`;
+        }
+
+    </script>
+</body>
+</html>
