@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
     <!-- --- Configurações PWA e iOS --- -->
-    <title>VinoSense</title>
+    <title>Sommelier AI</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Sommelier">
@@ -138,7 +138,7 @@
         <div class="w-full max-w-sm mx-auto my-auto">
             <div class="text-center mb-8">
                 <div class="inline-block p-4 rounded-full bg-wine-gradient shadow-2xl mb-4 text-4xl border-4 border-white/20">🍷</div>
-                <h1 class="text-3xl font-bold text-gray-900 tracking-tight">VinoSense</h1>
+                <h1 class="text-3xl font-bold text-gray-900 tracking-tight">Sommelier AI</h1>
                 <p class="text-gray-600 font-serif italic text-sm">Sua adega inteligente.</p>
             </div>
 
@@ -238,7 +238,7 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <h3 class="text-2xl font-bold font-serif mb-1">Ler Rótulo</h3>
-                            <p class="text-gray-300 text-sm">Analise de vinhos</p>
+                            <p class="text-gray-300 text-sm">Analise vinhos com IA</p>
                         </div>
                         <div class="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/30">
                             <i data-lucide="camera" class="w-6 h-6"></i>
@@ -268,6 +268,8 @@
                 </div>
             </button>
         </div>
+        
+        <p class="text-center text-xs text-gray-400 mt-auto mb-4 opacity-50">Powered by Gemini AI</p>
     </div>
 
     <!-- ================================================================== -->
@@ -292,7 +294,8 @@
                         <p class="mb-1 text-lg font-bold text-gray-700">Tirar Foto do Rótulo</p>
                         <p class="text-xs text-gray-400">ou escolher da galeria</p>
                     </div>
-                    <input id="file-upload" type="file" class="hidden" accept="image/*" capture="environment" />
+                    <!-- REMOVIDO "capture=environment" PARA PERMITIR ESCOLHER GALERIA -->
+                    <input id="file-upload" type="file" class="hidden" accept="image/*" />
                     
                     <button id="btn-reset-img" class="hidden absolute top-4 right-4 z-20 bg-black/50 text-white p-2 rounded-full backdrop-blur-md">
                         <i data-lucide="x" class="w-5 h-5"></i>
@@ -367,11 +370,19 @@
     <!-- TELA 4: CATÁLOGO (Adega) -->
     <!-- ================================================================== -->
     <div id="view-catalog" class="hidden fixed inset-0 z-50 flex flex-col bg-[#fcfbf9]">
-        <div class="pt-safe-top px-4 pb-4 flex items-center sticky top-0 bg-[#fcfbf9]/90 backdrop-blur-md z-30 border-b border-gray-200">
-            <button id="btn-close-catalog" class="p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors">
-                <i data-lucide="arrow-left" class="w-6 h-6 text-gray-700"></i>
-            </button>
-            <h2 class="text-lg font-bold text-gray-900 ml-2">Minha Adega</h2>
+        <div class="pt-safe-top px-4 pb-4 flex flex-col sticky top-0 bg-[#fcfbf9]/90 backdrop-blur-md z-30 border-b border-gray-200">
+            <div class="flex items-center mb-2">
+                <button id="btn-close-catalog" class="p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors">
+                    <i data-lucide="arrow-left" class="w-6 h-6 text-gray-700"></i>
+                </button>
+                <h2 class="text-lg font-bold text-gray-900 ml-2">Minha Adega</h2>
+            </div>
+            
+            <!-- CAMPO DE BUSCA ADICIONADO -->
+            <div class="mb-2 relative">
+                <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                <input id="catalog-search" type="text" class="input-wine text-sm pl-9 py-2.5" placeholder="Buscar por nome, uva, tipo...">
+            </div>
         </div>
 
         <div class="flex-1 overflow-y-auto p-4 pb-20">
@@ -396,6 +407,9 @@
                 </div>
                 <p class="font-medium">Sua adega está vazia.</p>
                 <p class="text-sm mt-1">Escaneie um rótulo para começar.</p>
+            </div>
+            <div id="empty-search-msg" class="hidden flex flex-col items-center justify-center mt-20 text-gray-400 text-center">
+                 <p class="font-medium">Nenhum vinho encontrado.</p>
             </div>
             <div id="catalog-list" class="grid grid-cols-2 gap-4 p-4"></div>
         </div>
@@ -552,7 +566,9 @@
                 grid: document.getElementById('catalog-list'),
                 loader: document.getElementById('catalog-loader'),
                 empty: document.getElementById('empty-catalog-msg'),
-                permError: document.getElementById('catalog-error-permission')
+                emptySearch: document.getElementById('empty-search-msg'),
+                permError: document.getElementById('catalog-error-permission'),
+                search: document.getElementById('catalog-search')
             },
             detail: {
                 el: document.getElementById('view-detail'),
@@ -576,6 +592,9 @@
         let currentDetailId = null;
         let catalogUnsubscribe = null;
         let justRegistered = false; 
+        
+        // VARIÁVEL NOVA PARA ARMAZENAR DADOS LOCAIS DA COLEÇÃO
+        let allWinesData = [];
 
         lucide.createIcons();
 
@@ -588,7 +607,10 @@
             target.classList.remove('hidden');
             target.classList.add('fade-enter-active');
             
-            if (viewName === 'catalog') loadCatalog();
+            if (viewName === 'catalog') {
+                loadCatalog();
+                ui.catalog.search.value = ""; // Limpa busca ao abrir
+            }
         }
 
         // --- AUTH UI LOGIC ---
@@ -846,11 +868,22 @@
         ui.home.btnCatalog.onclick = () => switchView('catalog');
         ui.catalog.btnClose.onclick = () => switchView('home');
 
+        // LOGICA DE BUSCA
+        ui.catalog.search.addEventListener('keyup', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = allWinesData.filter(item => {
+                const searchStr = `${item.nome} ${item.tipo} ${item.uvas} ${item.regiao}`.toLowerCase();
+                return searchStr.includes(term);
+            });
+            renderCatalog(filtered);
+        });
+
         function loadCatalog() {
             if (!currentUser) return;
             ui.catalog.loader.classList.remove('hidden');
             ui.catalog.empty.classList.add('hidden');
-            ui.catalog.permError.classList.add('hidden'); // Reseta erro
+            ui.catalog.emptySearch.classList.add('hidden');
+            ui.catalog.permError.classList.add('hidden'); 
             ui.catalog.grid.innerHTML = '';
             
             if (catalogUnsubscribe) catalogUnsubscribe();
@@ -858,12 +891,16 @@
             const winesRef = collection(db, 'users', currentUser.uid, 'wines');
             const q = query(winesRef, orderBy('timestamp', 'desc'));
 
-            // ADICIONADO CALLBACK DE ERRO AQUI
             catalogUnsubscribe = onSnapshot(q, (snapshot) => {
                 ui.catalog.loader.classList.add('hidden');
-                ui.catalog.grid.innerHTML = '';
-                if (snapshot.empty) ui.catalog.empty.classList.remove('hidden');
-                else snapshot.forEach(doc => createCatalogItem({ id: doc.id, ...doc.data() }));
+                
+                // Atualiza dados locais
+                allWinesData = [];
+                snapshot.forEach(doc => allWinesData.push({ id: doc.id, ...doc.data() }));
+
+                // Renderiza tudo inicialmente
+                renderCatalog(allWinesData);
+
             }, (error) => {
                 console.error("Erro Snapshot:", error);
                 ui.catalog.loader.classList.add('hidden');
@@ -871,6 +908,25 @@
                     ui.catalog.permError.classList.remove('hidden');
                 }
             });
+        }
+
+        function renderCatalog(items) {
+            ui.catalog.grid.innerHTML = '';
+            ui.catalog.empty.classList.add('hidden');
+            ui.catalog.emptySearch.classList.add('hidden');
+
+            if (items.length === 0) {
+                // Se a busca estiver vazia mas existirem dados globais, é filtro sem resultado
+                if (allWinesData.length > 0) {
+                    ui.catalog.emptySearch.classList.remove('hidden');
+                } else {
+                    // Se não existem dados nenhuns
+                    ui.catalog.empty.classList.remove('hidden');
+                }
+                return;
+            }
+
+            items.forEach(item => createCatalogItem(item));
         }
 
         function createCatalogItem(item) {
