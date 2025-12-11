@@ -11,6 +11,10 @@
     <meta name="apple-mobile-web-app-title" content="VinoSense">
     <meta name="theme-color" content="#80182a">
 
+    <!-- LINKS DOS ÍCONES (Serão atualizados pelo JavaScript abaixo) -->
+    <link id="app-favicon" rel="icon" type="image/png" href="https://raw.githubusercontent.com/lucasmaia2709-lang/rotulos/refs/heads/main/logo.jpg">
+    <link id="app-apple-icon" rel="apple-touch-icon" href="https://raw.githubusercontent.com/lucasmaia2709-lang/rotulos/refs/heads/main/logo.jpg">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
     
@@ -130,7 +134,11 @@
     <div id="view-auth" class="fixed inset-0 z-50 flex flex-col justify-center px-6 pt-safe-top pb-safe-bottom bg-white/30 backdrop-blur-md transition-all duration-500 overflow-y-auto">
         <div class="w-full max-w-sm mx-auto my-auto">
             <div class="text-center mb-8">
-                <div class="inline-block p-4 rounded-full bg-vinosense-gradient shadow-2xl mb-4 text-4xl border-4 border-white/20">🍷</div>
+                <!-- LOGO AQUI (Controlado pelo JS) -->
+                <div class="flex justify-center mb-4">
+                    <img id="auth-logo-img" src="" alt="Logo" class="h-28 w-28 rounded-full shadow-2xl border-4 border-white/20 bg-white object-contain p-2">
+                </div>
+                
                 <h1 class="text-4xl font-bold tracking-tight mb-1">
                     <span class="text-vino">Vino</span><span class="text-sense">Sense</span>
                 </h1>
@@ -404,8 +412,24 @@
         import { getAuth, onAuthStateChanged, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
         import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, deleteDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
+        // ========================================================
+        // 🛠️ CONFIGURAÇÃO DE IMAGENS (ALTERE AQUI!)
+        // ========================================================
+        const APP_IMAGES = {
+            // Link da imagem que aparece na tela de Login/Cadastro
+            logo: "https://cdn-icons-png.flaticon.com/512/920/920605.png", 
+            
+            // Link do ícone que aparece na aba do navegador e ao salvar no celular
+            icon: "https://cdn-icons-png.flaticon.com/512/920/920605.png"  
+        };
+        // ========================================================
+
+        // APLICA AS IMAGENS IMEDIATAMENTE AO CARREGAR
+        document.getElementById('app-favicon').href = APP_IMAGES.icon;
+        document.getElementById('app-apple-icon').href = APP_IMAGES.icon;
+        document.getElementById('auth-logo-img').src = APP_IMAGES.logo;
+
         // CONFIGURAÇÃO FORÇADA PARA O SEU PROJETO PESSOAL
-        // Nota: Ignoramos a config do ambiente para conectar ao SEU banco de dados específico.
         const firebaseConfig = {
             apiKey: "AIzaSyDPwBp5cNCr80IpY1EMLvtVnWFHssvxlMY",
             authDomain: "rotulos-9e0cb.firebaseapp.com",
@@ -416,9 +440,6 @@
             measurementId: "G-KWWHDJCLQZ"
         };
         
-        // Removemos o uso de __initial_auth_token pois ele causa conflito com a config personalizada.
-        // O usuário deverá fazer login manual ou anônimo.
-
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
@@ -609,14 +630,31 @@
 
         ui.home.btnLogout.onclick = () => signOut(auth);
 
+        // --- LÓGICA DE AUTH ALTERADA AQUI ---
         onAuthStateChanged(auth, (user) => {
             currentUser = user;
-            if (justRegistered && user) return; 
+            if (justRegistered && user) return;
             if (user) {
                 switchView('home');
                 generateWineQuote();
             } else {
+                // Usuário saiu: Forçar tela de login limpa
                 switchView('auth');
+                
+                // 1. Limpar Inputs
+                ui.auth.loginEmail.value = "";
+                ui.auth.loginPass.value = "";
+                ui.auth.regEmail.value = "";
+                ui.auth.regPass.value = "";
+
+                // 2. Garantir que mostra o formulário de Login (não Cadastro ou Reset)
+                ui.auth.formLogin.classList.remove('hidden');
+                ui.auth.formRegister.classList.add('hidden');
+                ui.auth.formReset.classList.add('hidden');
+                ui.auth.message.classList.add('hidden');
+                
+                // Resetar botão se ficou travado
+                ui.auth.btnLogin.textContent = "Entrar";
             }
         });
 
@@ -695,8 +733,8 @@
                 
                 data = result;
                 if (result.text) {
-                      const jsonStr = extractJSON(result.text);
-                      data = JSON.parse(jsonStr);
+                       const jsonStr = extractJSON(result.text);
+                       data = JSON.parse(jsonStr);
                 }
 
             } catch (workerError) {
