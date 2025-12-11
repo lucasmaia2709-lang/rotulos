@@ -24,8 +24,8 @@
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
         
-        /* Ajuste Seguro iOS */
-        .pt-safe-top { padding-top: calc(env(safe-area-inset-top) + 20px); }
+        /* Ajuste Seguro iOS - Aumentado para 40px para evitar invasão do menu */
+        .pt-safe-top { padding-top: calc(env(safe-area-inset-top) + 40px); }
         .pb-safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
         
         /* Efeito de Vidro (Glassmorphism) */
@@ -59,6 +59,26 @@
             ring: 2px;
             box-shadow: 0 0 0 3px rgba(114, 14, 30, 0.1);
         }
+
+        /* Botões de Mercado */
+        .market-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: transform 0.1s;
+            text-decoration: none;
+            color: white;
+        }
+        .market-btn:active { transform: scale(0.95); }
+        .market-lidl { background-color: #0050aa; } /* Lidl Blue */
+        .market-cont { background-color: #e30613; } /* Continente */
+        .market-auchan { background-color: #e2001a; } /* Auchan */
+        /* Mercadona Removido */
 
         /* Animações */
         .fade-enter { opacity: 0; transform: scale(0.98); }
@@ -250,7 +270,7 @@
     <!-- TELA 3: SCANNER -->
     <!-- ================================================================== -->
     <div id="view-scan" class="hidden fixed inset-0 z-50 flex flex-col bg-[#fcfbf9] overflow-y-auto">
-        <div class="pt-safe-top px-4 py-4 flex items-center sticky top-0 bg-[#fcfbf9]/90 backdrop-blur-md z-30 border-b border-gray-200">
+        <div class="pt-safe-top px-4 pb-4 flex items-center sticky top-0 bg-[#fcfbf9]/90 backdrop-blur-md z-30 border-b border-gray-200">
             <button id="btn-back-home" class="p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors">
                 <i data-lucide="arrow-left" class="w-6 h-6 text-gray-700"></i>
             </button>
@@ -343,7 +363,7 @@
     <!-- TELA 4: CATÁLOGO (Adega) -->
     <!-- ================================================================== -->
     <div id="view-catalog" class="hidden fixed inset-0 z-50 flex flex-col bg-[#fcfbf9]">
-        <div class="pt-safe-top px-4 py-4 flex items-center sticky top-0 bg-[#fcfbf9]/90 backdrop-blur-md z-30 border-b border-gray-200">
+        <div class="pt-safe-top px-4 pb-4 flex items-center sticky top-0 bg-[#fcfbf9]/90 backdrop-blur-md z-30 border-b border-gray-200">
             <button id="btn-close-catalog" class="p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors">
                 <i data-lucide="arrow-left" class="w-6 h-6 text-gray-700"></i>
             </button>
@@ -424,6 +444,16 @@
                 <div class="bg-[#4a0404] text-white p-5 rounded-2xl shadow-inner">
                     <h3 class="font-serif text-lg mb-2 border-b border-white/10 pb-2">Notas</h3>
                     <p id="detail-notes" class="italic text-gray-300 text-sm"></p>
+                </div>
+
+                <!-- SEÇÃO DE PREÇOS -->
+                <div>
+                    <h3 class="font-bold text-gray-900 flex items-center gap-2 mb-3">
+                        <i data-lucide="shopping-bag" class="w-4 h-4 text-wine"></i> 💰 Comparar Preços (Portugal)
+                    </h3>
+                    <div id="detail-markets" class="grid grid-cols-2 gap-3">
+                        <!-- Botões injetados via JS -->
+                    </div>
                 </div>
                 
                 <p id="detail-date" class="text-center text-xs text-gray-300 mt-4"></p>
@@ -532,6 +562,7 @@
                 storage: document.getElementById('detail-storage'),
                 pairing: document.getElementById('detail-pairing'),
                 notes: document.getElementById('detail-notes'),
+                markets: document.getElementById('detail-markets'),
                 date: document.getElementById('detail-date')
             }
         };
@@ -867,6 +898,21 @@
                 const date = item.timestamp.toDate ? item.timestamp.toDate() : new Date(item.timestamp);
                 ui.detail.date.textContent = "Degustado em " + date.toLocaleDateString('pt-BR');
             }
+
+            // GERA LINKS DE MERCADOS
+            const term = encodeURIComponent(item.nome + " vinho");
+            ui.detail.markets.innerHTML = `
+                <a href="https://www.lidl.pt/q/search?q=${term}" target="_blank" class="market-btn market-lidl">
+                    Lidl
+                </a>
+                <a href="https://www.continente.pt/pesquisa/?q=${term}" target="_blank" class="market-btn market-cont">
+                    Continente
+                </a>
+                <a href="https://www.auchan.pt/pt/pesquisa?q=${term}" target="_blank" class="market-btn market-auchan">
+                    Auchan
+                </a>
+            `;
+
             ui.detail.el.classList.remove('hidden');
             setTimeout(() => ui.detail.el.classList.remove('translate-y-full'), 10);
         }
