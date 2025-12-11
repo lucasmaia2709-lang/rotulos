@@ -5,17 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
     <!-- --- Configurações PWA e iOS --- -->
-    <title>Sommelier AI</title>
+    <title>VinoSense</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Sommelier">
-    <meta name="theme-color" content="#4a0404">
+    <meta name="apple-mobile-web-app-title" content="VinoSense">
+    <meta name="theme-color" content="#80182a">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
     
     <!-- Ícones Lucide -->
-    <script src="https://raw.githubusercontent.com/lucasmaia2709-lang/rotulos/refs/heads/main/logo.jpg"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
 
     <style>
         body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
@@ -28,20 +28,40 @@
         .pt-safe-top { padding-top: calc(env(safe-area-inset-top) + 40px); }
         .pb-safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
         
+        /* --- NOVA PALETA DE CORES VINOSENSE --- */
+        :root {
+            --color-vino: #80182a;   /* Vermelho do Logo */
+            --color-sense: #4f6185;  /* Azul do Logo */
+            --color-gold: #d1a84f;   /* Dourado do Logo */
+            --color-dark: #1a1a1a;   /* Fundo Escuro do Logo */
+        }
+
+        .text-vino { color: var(--color-vino); }
+        .text-sense { color: var(--color-sense); }
+        .text-gold { color: var(--color-gold); }
+        .bg-vino { background-color: var(--color-vino); }
+        
+        /* Gradiente Principal: Do Vermelho (Vino) ao Azul (Sense) */
+        .bg-vinosense-gradient { 
+            background: linear-gradient(135deg, var(--color-vino) 0%, var(--color-sense) 100%); 
+        }
+
         /* Efeito de Vidro (Glassmorphism) */
         .glass-panel {
-            background: rgba(255, 255, 255, 0.90);
+            background: rgba(255, 255, 255, 0.92);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.6);
         }
 
+        /* Vidro Escuro (Inspirado no fundo do logo) */
         .glass-dark {
-            background: rgba(40, 10, 10, 0.85);
+            background: rgba(26, 26, 26, 0.95);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             color: white;
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.3);
         }
 
         /* Inputs Personalizados */
@@ -50,14 +70,14 @@
             padding: 12px 16px;
             border-radius: 12px;
             border: 1px solid #e5e7eb;
-            background-color: rgba(255, 255, 255, 0.8);
+            background-color: rgba(255, 255, 255, 0.9);
             outline: none;
             transition: all 0.2s;
         }
         .input-wine:focus {
-            border-color: #720e1e;
+            border-color: var(--color-vino);
             ring: 2px;
-            box-shadow: 0 0 0 3px rgba(114, 14, 30, 0.1);
+            box-shadow: 0 0 0 3px rgba(128, 24, 42, 0.1);
         }
 
         /* Botões de Mercado */
@@ -68,7 +88,7 @@
             gap: 6px;
             padding: 10px;
             border-radius: 10px;
-            font-size: 0.75rem; /* Levemente reduzido para caber mais botões */
+            font-size: 0.75rem; 
             font-weight: 600;
             transition: transform 0.1s;
             text-decoration: none;
@@ -76,19 +96,15 @@
             text-align: center;
         }
         .market-btn:active { transform: scale(0.95); }
-        .market-lidl { background-color: #0050aa; } /* Lidl Blue */
-        .market-cont { background-color: #e30613; } /* Continente */
-        .market-auchan { background-color: #e2001a; } /* Auchan */
-        .market-gn { background-color: #111111; } /* Garrafeira Nacional (Preto) */
+        .market-lidl { background-color: #0050aa; } 
+        .market-cont { background-color: #e30613; } 
+        .market-auchan { background-color: #e2001a; } 
+        .market-gn { background-color: #111111; } 
 
         /* Animações */
         .fade-enter { opacity: 0; transform: scale(0.98); }
         .fade-enter-active { opacity: 1; transform: scale(1); transition: opacity 300ms, transform 300ms cubic-bezier(0.16, 1, 0.3, 1); }
         .btn-press:active { transform: scale(0.97); transition: transform 0.1s; }
-        
-        /* Gradientes de Vinho */
-        .bg-wine-gradient { background: linear-gradient(135deg, #720e1e 0%, #4a0404 100%); }
-        .text-wine { color: #720e1e; }
         
         @keyframes blob {
             0% { transform: translate(0px, 0px) scale(1); }
@@ -105,46 +121,23 @@
     
     <!-- Fundo Decorativo -->
     <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-        <div class="absolute -top-[20%] -left-[10%] w-[70%] h-[70%] bg-red-900 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-        <div class="absolute top-[10%] -right-[10%] w-[60%] h-[60%] bg-purple-900 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
-        <div class="absolute -bottom-[20%] left-[20%] w-[60%] h-[60%] bg-orange-900 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-4000"></div>
+        <div class="absolute -top-[20%] -left-[10%] w-[70%] h-[70%] bg-[#80182a] rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob"></div>
+        <div class="absolute top-[10%] -right-[10%] w-[60%] h-[60%] bg-[#4f6185] rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-2000"></div>
+        <div class="absolute -bottom-[20%] left-[20%] w-[60%] h-[60%] bg-[#d1a84f] rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-4000"></div>
     </div>
 
-    <!-- --- Script PWA Ícone Dinâmico --- -->
-    <script>
-        (function() {
-            const canvas = document.createElement('canvas');
-            canvas.width = 512; canvas.height = 512;
-            const ctx = canvas.getContext('2d');
-            const grd = ctx.createLinearGradient(0, 0, 0, 512);
-            grd.addColorStop(0, "#720e1e"); grd.addColorStop(1, "#2b0202");
-            ctx.fillStyle = grd; ctx.fillRect(0, 0, 512, 512);
-            ctx.font = '300px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; 
-            ctx.fillText('🍷', 256, 256);
-            const iconUrl = canvas.toDataURL('image/png');
-            let link = document.querySelector("link[rel*='icon']") || document.createElement('link');
-            link.type = 'image/png'; link.rel = 'shortcut icon'; link.href = iconUrl;
-            document.head.appendChild(link);
-            let appleLink = document.querySelector("link[rel='apple-touch-icon']") || document.createElement('link');
-            appleLink.rel = 'apple-touch-icon'; appleLink.href = iconUrl;
-            document.head.appendChild(appleLink);
-        })();
-    </script>
-
-    <!-- ================================================================== -->
-    <!-- TELA 1: AUTH (Login / Registro / Reset) -->
-    <!-- ================================================================== -->
+    <!-- TELA 1: AUTH -->
     <div id="view-auth" class="fixed inset-0 z-50 flex flex-col justify-center px-6 pt-safe-top pb-safe-bottom bg-white/30 backdrop-blur-md transition-all duration-500 overflow-y-auto">
         <div class="w-full max-w-sm mx-auto my-auto">
             <div class="text-center mb-8">
-                <div class="inline-block p-4 rounded-full bg-wine-gradient shadow-2xl mb-4 text-4xl border-4 border-white/20">🍷</div>
-                <h1 class="text-3xl font-bold text-gray-900 tracking-tight">Sommelier AI</h1>
-                <p class="text-gray-600 font-serif italic text-sm">Sua adega inteligente.</p>
+                <div class="inline-block p-4 rounded-full bg-vinosense-gradient shadow-2xl mb-4 text-4xl border-4 border-white/20">🍷</div>
+                <h1 class="text-4xl font-bold tracking-tight mb-1">
+                    <span class="text-vino">Vino</span><span class="text-sense">Sense</span>
+                </h1>
+                <p class="text-gray-600 font-serif italic text-sm">Inteligência para o seu paladar.</p>
             </div>
 
             <div class="glass-panel p-8 rounded-3xl shadow-xl transition-all duration-300">
-                
-                <!-- MENSAGEM DE ERRO/SUCESSO GLOBAL -->
                 <div id="auth-message" class="hidden mb-4 p-3 rounded-lg text-sm text-center font-medium"></div>
 
                 <!-- FORM: LOGIN -->
@@ -156,15 +149,13 @@
                     <div>
                         <input type="password" id="login-pass" class="input-wine" placeholder="Senha" required>
                         <div class="text-right mt-1">
-                            <button type="button" id="btn-forgot" class="text-xs text-wine/80 hover:text-wine font-medium">Esqueceu a senha?</button>
+                            <button type="button" id="btn-forgot" class="text-xs text-sense hover:text-vino font-medium">Esqueceu a senha?</button>
                         </div>
                     </div>
-                    <button type="submit" id="btn-submit-login" class="btn-press w-full bg-wine-gradient text-white font-bold py-3.5 rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2">
-                        Entrar
-                    </button>
+                    <button type="submit" id="btn-submit-login" class="btn-press w-full bg-vinosense-gradient text-white font-bold py-3.5 rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2">Entrar</button>
                     <div class="text-center pt-2">
                         <span class="text-xs text-gray-500">Não tem conta?</span>
-                        <button type="button" id="btn-to-register" class="text-xs font-bold text-wine hover:underline ml-1">Cadastre-se</button>
+                        <button type="button" id="btn-to-register" class="text-xs font-bold text-vino hover:underline ml-1">Cadastre-se</button>
                     </div>
                 </form>
 
@@ -177,109 +168,85 @@
                     <div>
                         <input type="password" id="reg-pass" class="input-wine" placeholder="Senha (mín. 6 caracteres)" required minlength="6">
                     </div>
-                    <button type="submit" id="btn-submit-register" class="btn-press w-full bg-gray-900 text-white font-bold py-3.5 rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2">
-                        Cadastrar
-                    </button>
+                    <button type="submit" id="btn-submit-register" class="btn-press w-full bg-gray-900 text-white font-bold py-3.5 rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2">Cadastrar</button>
                     <div class="text-center pt-2">
                         <span class="text-xs text-gray-500">Já possui conta?</span>
-                        <button type="button" id="btn-to-login" class="text-xs font-bold text-wine hover:underline ml-1">Faça Login</button>
+                        <button type="button" id="btn-to-login" class="text-xs font-bold text-vino hover:underline ml-1">Faça Login</button>
                     </div>
                 </form>
 
-                <!-- FORM: RECUPERAR SENHA -->
+                <!-- FORM: RESET -->
                 <form id="form-reset" class="hidden space-y-4">
                     <h2 class="text-xl font-bold text-gray-800 text-center mb-2">Recuperar Senha</h2>
                     <p class="text-xs text-gray-500 text-center mb-4">Digite seu email para receber o link.</p>
                     <div>
                         <input type="email" id="reset-email" class="input-wine" placeholder="Seu Email" required>
                     </div>
-                    <button type="submit" id="btn-submit-reset" class="btn-press w-full bg-wine-gradient text-white font-bold py-3.5 rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2">
-                        Enviar Email
-                    </button>
+                    <button type="submit" id="btn-submit-reset" class="btn-press w-full bg-vinosense-gradient text-white font-bold py-3.5 rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2">Enviar Email</button>
                     <div class="text-center pt-2">
                         <button type="button" id="btn-reset-back" class="text-xs font-medium text-gray-500 hover:text-gray-800">Voltar</button>
                     </div>
                 </form>
-
             </div>
         </div>
     </div>
 
-    <!-- ================================================================== -->
-    <!-- TELA 2: HOME (Dashboard) -->
-    <!-- ================================================================== -->
+    <!-- TELA 2: HOME -->
     <div id="view-home" class="hidden fixed inset-0 z-40 flex flex-col px-6 pt-safe-top pb-safe-bottom overflow-y-auto">
         <div class="flex justify-between items-center mt-4 mb-8">
             <div>
-                <p class="text-sm text-gray-500 font-medium uppercase tracking-wide">Minha Adega</p>
-                <h1 id="home-user-name" class="text-3xl font-bold text-gray-900 truncate max-w-[200px] text-wine">Sommelier</h1>
+                <p class="text-sm text-gray-500 font-medium uppercase tracking-wide">Bem-vindo ao</p>
+                <h1 class="text-3xl font-bold tracking-tight"><span class="text-vino">Vino</span><span class="text-sense">Sense</span></h1>
             </div>
-            <button id="btn-logout" class="p-2 rounded-full bg-white shadow-sm border border-gray-100 text-gray-400 hover:text-red-800 transition-colors">
-                <i data-lucide="log-out" class="w-5 h-5"></i>
-            </button>
+            <button id="btn-logout" class="p-2 rounded-full bg-white shadow-sm border border-gray-100 text-gray-400 hover:text-red-800 transition-colors"><i data-lucide="log-out" class="w-5 h-5"></i></button>
         </div>
 
-        <!-- Frase do dia -->
-        <div class="glass-dark p-6 rounded-3xl mb-8 relative overflow-hidden shadow-lg">
-            <div class="absolute -right-4 -top-4 text-9xl opacity-10 font-serif">"</div>
-            <p id="daily-quote" class="text-gray-100 italic font-serif relative z-10 text-lg leading-relaxed">"O vinho melhora com o tempo. Eu melhoro com o vinho."</p>
+        <div class="glass-dark p-6 rounded-3xl mb-8 relative overflow-hidden shadow-lg border-l-4" style="border-left-color: var(--color-gold);">
+            <div class="absolute -right-4 -top-4 text-9xl opacity-10 font-serif text-white">"</div>
+            <p id="daily-quote" class="text-gray-200 italic font-serif relative z-10 text-lg leading-relaxed">"O vinho melhora com o tempo. Eu melhoro com o vinho."</p>
             <div class="flex items-center gap-2 mt-4 opacity-70">
                 <div class="h-[1px] bg-white w-8"></div>
-                <p class="text-xs font-bold uppercase tracking-widest">Dose de Sabedoria</p>
+                <p class="text-xs font-bold uppercase tracking-widest text-gold">VinoSense AI</p>
             </div>
         </div>
 
         <div class="grid grid-cols-1 gap-5">
-            <!-- Botão Scan -->
             <button id="btn-go-scan" class="btn-press group relative h-48 w-full rounded-3xl overflow-hidden shadow-xl transition-all">
                 <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?auto=format&fit=crop&q=80')] bg-cover bg-center"></div>
-                <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+                <div class="absolute inset-0 bg-gradient-to-t from-[#1a1a1a] via-[#1a1a1a]/40 to-transparent opacity-90"></div>
                 <div class="absolute inset-0 p-6 flex flex-col justify-end text-white">
                     <div class="flex items-center justify-between">
                         <div>
                             <h3 class="text-2xl font-bold font-serif mb-1">Ler Rótulo</h3>
-                            <p class="text-gray-300 text-sm">Analise vinhos com IA</p>
+                            <p class="text-gray-300 text-sm">IA Cognitiva</p>
                         </div>
-                        <div class="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/30">
-                            <i data-lucide="camera" class="w-6 h-6"></i>
-                        </div>
+                        <div class="w-12 h-12 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20"><i data-lucide="camera" class="w-6 h-6 text-gold"></i></div>
                     </div>
                 </div>
             </button>
 
-            <!-- Botão Catálogo -->
             <button id="btn-go-catalog" class="btn-press group relative h-32 w-full rounded-3xl overflow-hidden shadow-xl transition-all">
-                <!-- Imagem de Fundo (Adega) -->
                 <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1559563362-c667ba5f5480?auto=format&fit=crop&q=80')] bg-cover bg-center"></div>
-                <!-- Overlay Escuro para Legibilidade -->
-                <div class="absolute inset-0 bg-gradient-to-r from-black/80 to-black/30"></div>
-                
+                <div class="absolute inset-0 bg-gradient-to-r from-[#1a1a1a]/90 to-[#1a1a1a]/40"></div>
                 <div class="absolute inset-0 p-6 flex items-center justify-between relative z-10">
                     <div class="flex items-center gap-4">
-                        <div class="w-14 h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-white border border-white/30">
-                            <i data-lucide="library" class="w-7 h-7"></i>
-                        </div>
+                        <div class="w-14 h-14 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center text-white border border-white/20"><i data-lucide="library" class="w-7 h-7 text-sense"></i></div>
                         <div class="text-left">
-                            <h3 class="text-xl font-bold text-white">Coleção</h3>
-                            <p class="text-gray-300 text-sm">Seus vinhos salvos</p>
+                            <h3 class="text-xl font-bold text-white">Sua Adega</h3>
+                            <p class="text-gray-300 text-sm">Coleção Pessoal</p>
                         </div>
                     </div>
-                    <i data-lucide="chevron-right" class="text-white/70"></i>
+                    <i data-lucide="chevron-right" class="text-gold"></i>
                 </div>
             </button>
         </div>
-        
-        <p class="text-center text-xs text-gray-400 mt-auto mb-4 opacity-50">Powered by Gemini AI</p>
+        <p class="text-center text-xs text-gray-400 mt-auto mb-4 opacity-50">Powered by VinoSense AI</p>
     </div>
 
-    <!-- ================================================================== -->
     <!-- TELA 3: SCANNER -->
-    <!-- ================================================================== -->
     <div id="view-scan" class="hidden fixed inset-0 z-50 flex flex-col bg-[#fcfbf9] overflow-y-auto">
         <div class="pt-safe-top px-4 pb-4 flex items-center sticky top-0 bg-[#fcfbf9]/90 backdrop-blur-md z-30 border-b border-gray-200">
-            <button id="btn-back-home" class="p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors">
-                <i data-lucide="arrow-left" class="w-6 h-6 text-gray-700"></i>
-            </button>
+            <button id="btn-back-home" class="p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors"><i data-lucide="arrow-left" class="w-6 h-6 text-gray-700"></i></button>
             <h2 class="text-lg font-bold text-gray-900 ml-2">Analisar Vinho</h2>
         </div>
 
@@ -288,31 +255,21 @@
                 <label for="file-upload" class="group relative flex flex-col items-center justify-center w-full aspect-[3/4] border-2 border-dashed border-gray-300 rounded-3xl cursor-pointer bg-white shadow-sm hover:bg-gray-50 transition-all overflow-hidden">
                     <img id="image-preview" src="" class="hidden absolute inset-0 w-full h-full object-cover z-10" />
                     <div id="upload-prompt" class="flex flex-col items-center justify-center pt-5 pb-6 z-0 transition-transform group-hover:scale-105">
-                        <div class="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mb-4">
-                            <i data-lucide="scan-line" class="w-8 h-8 text-wine"></i>
-                        </div>
+                        <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4"><i data-lucide="scan-line" class="w-8 h-8 text-vino"></i></div>
                         <p class="mb-1 text-lg font-bold text-gray-700">Tirar Foto do Rótulo</p>
-                        <p class="text-xs text-gray-400">ou escolher da galeria</p>
+                        <p class="text-xs text-sense font-medium">ou escolher da galeria</p>
                     </div>
-                    <!-- REMOVIDO "capture=environment" PARA PERMITIR ESCOLHER GALERIA -->
                     <input id="file-upload" type="file" class="hidden" accept="image/*" />
-                    
-                    <button id="btn-reset-img" class="hidden absolute top-4 right-4 z-20 bg-black/50 text-white p-2 rounded-full backdrop-blur-md">
-                        <i data-lucide="x" class="w-5 h-5"></i>
-                    </button>
+                    <button id="btn-reset-img" class="hidden absolute top-4 right-4 z-20 bg-black/50 text-white p-2 rounded-full backdrop-blur-md"><i data-lucide="x" class="w-5 h-5"></i></button>
                 </label>
             </div>
 
-            <button id="submit-button" disabled class="btn-press w-full bg-wine-gradient text-white font-bold py-4 px-6 rounded-2xl shadow-xl transition-all disabled:opacity-50 disabled:grayscale flex items-center justify-center text-lg gap-3">
-                <div id="loading-spinner" class="animate-spin hidden">
-                    <i data-lucide="loader-2" class="w-6 h-6"></i>
-                </div>
-                <span id="submit-button-text">Identificar Vinho</span>
+            <button id="submit-button" disabled class="btn-press w-full bg-vinosense-gradient text-white font-bold py-4 px-6 rounded-2xl shadow-xl transition-all disabled:opacity-50 disabled:grayscale flex items-center justify-center text-lg gap-3 border border-white/20">
+                <div id="loading-spinner" class="animate-spin hidden"><i data-lucide="loader-2" class="w-6 h-6"></i></div>
+                <span id="submit-button-text">Identificar com VinoSense</span>
             </button>
 
-            <!-- RESULTADOS -->
             <div id="results-section" class="hidden mt-8 space-y-6 animate-pulse-once">
-                <!-- MENSAGENS -->
                 <div id="save-success-msg" class="hidden glass-panel border border-green-200 bg-green-50 p-4 rounded-xl flex items-center gap-3">
                     <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-700"><i data-lucide="check" class="w-4 h-4"></i></div>
                     <span class="text-sm font-medium text-green-800">Vinho salvo na adega!</span>
@@ -322,27 +279,27 @@
                     <div class="w-8 h-8 bg-red-100 rounded-full flex shrink-0 items-center justify-center text-red-700"><i data-lucide="alert-triangle" class="w-4 h-4"></i></div>
                     <div>
                         <span class="text-sm font-bold text-red-800 block">Erro de Permissão</span>
-                        <span class="text-xs text-red-700 mt-1 block">Não foi possível salvar no banco de dados. Verifique as <b>Regras do Firestore</b> no seu console Firebase.</span>
+                        <span class="text-xs text-red-700 mt-1 block">Não foi possível salvar. Verifique se está logado.</span>
                     </div>
                 </div>
 
                 <div class="bg-white p-6 rounded-3xl shadow-lg border border-gray-100 relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-24 h-24 bg-red-50 rounded-bl-[100px] -mr-4 -mt-4 z-0"></div>
+                    <div class="absolute top-0 right-0 w-24 h-24 bg-[#80182a]/10 rounded-bl-[100px] -mr-4 -mt-4 z-0"></div>
                     <div class="relative z-10">
-                        <span id="res-type" class="text-xs font-bold tracking-widest uppercase text-wine bg-red-100 px-3 py-1 rounded-full mb-3 inline-block">Vinho Tinto</span>
+                        <span id="res-type" class="text-xs font-bold tracking-widest uppercase text-vino bg-[#80182a]/10 px-3 py-1 rounded-full mb-3 inline-block">Vinho Tinto</span>
                         <h2 id="res-name" class="text-3xl font-bold text-gray-900 mb-2 font-serif leading-tight"></h2>
-                        <p id="res-region" class="text-gray-500 flex items-center gap-1 text-sm"><i data-lucide="map-pin" class="w-3 h-3"></i> <span class="val"></span></p>
+                        <p id="res-region" class="text-sense flex items-center gap-1 text-sm"><i data-lucide="map-pin" class="w-3 h-3"></i> <span class="val"></span></p>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-                        <div class="text-wine mb-2"><i data-lucide="thermometer" class="w-5 h-5"></i></div>
+                        <div class="text-vino mb-2"><i data-lucide="thermometer" class="w-5 h-5"></i></div>
                         <h4 class="text-xs font-bold text-gray-400 uppercase">Servir/Guardar</h4>
                         <p id="res-storage" class="text-sm font-medium text-gray-800 mt-1"></p>
                     </div>
                     <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-                        <div class="text-wine mb-2"><i data-lucide="grape" class="w-5 h-5"></i></div>
+                        <div class="text-sense mb-2"><i data-lucide="grape" class="w-5 h-5"></i></div>
                         <h4 class="text-xs font-bold text-gray-400 uppercase">Uvas</h4>
                         <p id="res-grapes" class="text-sm font-medium text-gray-800 mt-1"></p>
                     </div>
@@ -350,61 +307,42 @@
 
                 <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
                     <div class="flex items-center gap-3 mb-4">
-                        <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-700">
-                            <i data-lucide="utensils" class="w-5 h-5"></i>
-                        </div>
+                        <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-700"><i data-lucide="utensils" class="w-5 h-5"></i></div>
                         <h3 class="text-lg font-bold text-gray-800">Harmonização</h3>
                     </div>
                     <p id="res-pairing" class="text-gray-600 leading-relaxed"></p>
                 </div>
 
-                <div class="glass-dark p-6 rounded-3xl shadow-lg text-white">
-                    <h3 class="text-lg font-bold font-serif mb-3 border-b border-white/20 pb-2">Notas do Sommelier</h3>
+                <div class="glass-dark p-6 rounded-3xl shadow-lg text-white border-l-4" style="border-left-color: var(--color-gold);">
+                    <h3 class="text-lg font-bold font-serif mb-3 border-b border-white/20 pb-2 text-gold">Notas do Sommelier</h3>
                     <p id="res-notes" class="text-gray-200 italic leading-relaxed text-sm"></p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- ================================================================== -->
-    <!-- TELA 4: CATÁLOGO (Adega) -->
-    <!-- ================================================================== -->
+    <!-- TELA 4: CATÁLOGO -->
     <div id="view-catalog" class="hidden fixed inset-0 z-50 flex flex-col bg-[#fcfbf9]">
         <div class="pt-safe-top px-4 pb-4 flex flex-col sticky top-0 bg-[#fcfbf9]/90 backdrop-blur-md z-30 border-b border-gray-200">
             <div class="flex items-center mb-2">
-                <button id="btn-close-catalog" class="p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors">
-                    <i data-lucide="arrow-left" class="w-6 h-6 text-gray-700"></i>
-                </button>
+                <button id="btn-close-catalog" class="p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors"><i data-lucide="arrow-left" class="w-6 h-6 text-gray-700"></i></button>
                 <h2 class="text-lg font-bold text-gray-900 ml-2">Minha Adega</h2>
             </div>
-            
-            <!-- CAMPO DE BUSCA ADICIONADO -->
             <div class="mb-2 relative">
-                <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-sense"></i>
                 <input id="catalog-search" type="text" class="input-wine text-sm pl-9 py-2.5" placeholder="Buscar por nome, uva, tipo...">
             </div>
         </div>
 
         <div class="flex-1 overflow-y-auto p-4 pb-20">
-            <!-- AVISO DE ERRO DE PERMISSÃO -->
             <div id="catalog-error-permission" class="hidden mx-4 mt-6 p-4 bg-red-50 border border-red-200 rounded-xl">
-                <div class="flex items-center gap-2 mb-2 text-red-800 font-bold">
-                    <i data-lucide="lock" class="w-5 h-5"></i>
-                    <h3>Acesso Negado</h3>
-                </div>
-                <p class="text-sm text-red-700">Não foi possível carregar sua adega. Verifique as <b>Regras de Segurança (Rules)</b> no console do Firebase.</p>
-                <div class="mt-3 bg-white p-3 rounded text-xs font-mono text-gray-600 border border-gray-200 overflow-x-auto">
-                    allow read, write: if request.auth != null && request.auth.uid == userId;
-                </div>
+                <div class="flex items-center gap-2 mb-2 text-red-800 font-bold"><i data-lucide="lock" class="w-5 h-5"></i><h3>Acesso Negado</h3></div>
+                <p class="text-sm text-red-700">Verifique se está conectado.</p>
             </div>
 
-            <div id="catalog-loader" class="flex justify-center mt-20">
-                <i data-lucide="loader" class="animate-spin w-8 h-8 text-wine"></i>
-            </div>
+            <div id="catalog-loader" class="flex justify-center mt-20"><i data-lucide="loader" class="animate-spin w-8 h-8 text-vino"></i></div>
             <div id="empty-catalog-msg" class="hidden flex flex-col items-center justify-center mt-20 text-gray-400 text-center">
-                <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4 opacity-50">
-                    <i data-lucide="wine" class="w-10 h-10"></i>
-                </div>
+                <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4 opacity-50"><i data-lucide="wine" class="w-10 h-10"></i></div>
                 <p class="font-medium">Sua adega está vazia.</p>
                 <p class="text-sm mt-1">Escaneie um rótulo para começar.</p>
             </div>
@@ -415,27 +353,19 @@
         </div>
     </div>
 
-    <!-- ================================================================== -->
-    <!-- TELA 5: DETALHES (Modal) -->
-    <!-- ================================================================== -->
+    <!-- TELA 5: DETALHES -->
     <div id="view-detail" class="hidden fixed inset-0 z-[2000] flex flex-col bg-white transform translate-y-full transition-transform duration-300 shadow-2xl">
-        <div class="relative h-[45vh] shrink-0 bg-gray-900">
+        <div class="relative h-[45vh] shrink-0 bg-[#1a1a1a]">
             <img id="detail-image" src="" class="w-full h-full object-cover opacity-80">
-            <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
-            
+            <div class="absolute inset-0 bg-gradient-to-t from-[#1a1a1a] via-transparent to-transparent"></div>
             <div class="absolute top-0 left-0 w-full pt-safe-top px-4 flex justify-between items-start pointer-events-none z-20">
-                <button id="btn-close-detail" class="p-2 bg-black/20 backdrop-blur-md rounded-full text-white pointer-events-auto border border-white/20">
-                    <i data-lucide="chevron-down" class="w-6 h-6"></i>
-                </button>
-                <button id="btn-delete-item" class="p-2 bg-red-600/80 backdrop-blur-md rounded-full text-white pointer-events-auto shadow-lg border border-red-500">
-                     <i data-lucide="trash-2" class="w-5 h-5"></i>
-                </button>
+                <button id="btn-close-detail" class="p-2 bg-black/40 backdrop-blur-md rounded-full text-white pointer-events-auto border border-white/20"><i data-lucide="chevron-down" class="w-6 h-6"></i></button>
+                <button id="btn-delete-item" class="p-2 bg-red-600/80 backdrop-blur-md rounded-full text-white pointer-events-auto shadow-lg border border-red-500"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
             </div>
-
             <div class="absolute bottom-0 left-0 right-0 p-6">
                 <span id="detail-type" class="text-[10px] font-bold tracking-widest uppercase bg-white/20 backdrop-blur-sm text-white px-2 py-1 rounded-md mb-2 inline-block"></span>
                 <h2 id="detail-title" class="text-3xl font-bold text-white font-serif leading-tight shadow-sm"></h2>
-                <p id="detail-region" class="text-gray-300 text-sm mt-1 flex items-center gap-1"><i data-lucide="map-pin" class="w-3 h-3"></i> <span></span></p>
+                <p id="detail-region" class="text-gray-300 text-sm mt-1 flex items-center gap-1"><i data-lucide="map-pin" class="w-3 h-3 text-gold"></i> <span></span></p>
             </div>
         </div>
 
@@ -443,37 +373,26 @@
             <div class="space-y-6">
                 <div class="grid grid-cols-2 gap-4">
                     <div class="bg-gray-50 p-4 rounded-xl">
-                        <p class="text-xs text-gray-500 uppercase font-bold">Uvas</p>
+                        <p class="text-xs text-sense uppercase font-bold">Uvas</p>
                         <p id="detail-grapes" class="text-sm font-medium text-gray-800"></p>
                     </div>
                     <div class="bg-gray-50 p-4 rounded-xl">
-                        <p class="text-xs text-gray-500 uppercase font-bold">Armazenamento</p>
+                        <p class="text-xs text-sense uppercase font-bold">Armazenamento</p>
                         <p id="detail-storage" class="text-sm font-medium text-gray-800"></p>
                     </div>
                 </div>
-
                 <div>
-                    <h3 class="font-bold text-gray-900 flex items-center gap-2 mb-2">
-                        <i data-lucide="utensils" class="w-4 h-4 text-wine"></i> Harmonização
-                    </h3>
+                    <h3 class="font-bold text-gray-900 flex items-center gap-2 mb-2"><i data-lucide="utensils" class="w-4 h-4 text-vino"></i> Harmonização</h3>
                     <p id="detail-pairing" class="text-gray-600 leading-relaxed text-sm"></p>
                 </div>
-
-                <div class="bg-[#4a0404] text-white p-5 rounded-2xl shadow-inner">
-                    <h3 class="font-serif text-lg mb-2 border-b border-white/10 pb-2">Notas</h3>
+                <div class="bg-[#1a1a1a] text-white p-5 rounded-2xl shadow-inner border-l-4" style="border-left-color: var(--color-vino);">
+                    <h3 class="font-serif text-lg mb-2 border-b border-white/10 pb-2 text-gold">Notas</h3>
                     <p id="detail-notes" class="italic text-gray-300 text-sm"></p>
                 </div>
-
-                <!-- SEÇÃO DE PREÇOS -->
                 <div>
-                    <h3 class="font-bold text-gray-900 flex items-center gap-2 mb-3">
-                        <i data-lucide="shopping-bag" class="w-4 h-4 text-wine"></i> 💰 Comparar Preços (Portugal)
-                    </h3>
-                    <div id="detail-markets" class="grid grid-cols-2 gap-3">
-                        <!-- Botões injetados via JS -->
-                    </div>
+                    <h3 class="font-bold text-gray-900 flex items-center gap-2 mb-3"><i data-lucide="shopping-bag" class="w-4 h-4 text-sense"></i> 💰 Comparar Preços (Portugal)</h3>
+                    <div id="detail-markets" class="grid grid-cols-2 gap-3"></div>
                 </div>
-                
                 <p id="detail-date" class="text-center text-xs text-gray-300 mt-4"></p>
             </div>
         </div>
@@ -482,10 +401,11 @@
     <!-- FIREBASE & LOGIC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
         import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, deleteDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
-        // --- CONFIGURAÇÃO ---
+        // CONFIGURAÇÃO FORÇADA PARA O SEU PROJETO PESSOAL
+        // Nota: Ignoramos a config do ambiente para conectar ao SEU banco de dados específico.
         const firebaseConfig = {
             apiKey: "AIzaSyDPwBp5cNCr80IpY1EMLvtVnWFHssvxlMY",
             authDomain: "rotulos-9e0cb.firebaseapp.com",
@@ -496,16 +416,17 @@
             measurementId: "G-KWWHDJCLQZ"
         };
         
+        // Removemos o uso de __initial_auth_token pois ele causa conflito com a config personalizada.
+        // O usuário deverá fazer login manual ou anônimo.
+
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // CLOUDFLARE WORKER & FALLBACK
         const WORKER_URL = "https://rotulos.lucasmaia2709.workers.dev";
-        const API_KEY = ""; // Injetada pelo ambiente
+        const API_KEY = ""; 
         const FALLBACK_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${API_KEY}`;
 
-        // --- UI REFERENCES ---
         const ui = {
             views: {
                 auth: document.getElementById('view-auth'),
@@ -593,12 +514,10 @@
         let catalogUnsubscribe = null;
         let justRegistered = false; 
         
-        // VARIÁVEL NOVA PARA ARMAZENAR DADOS LOCAIS DA COLEÇÃO
         let allWinesData = [];
 
         lucide.createIcons();
 
-        // --- NAVEGAÇÃO ---
         function switchView(viewName) {
             Object.keys(ui.views).forEach(k => {
                 if (k !== 'detail') ui.views[k].classList.add('hidden');
@@ -609,11 +528,10 @@
             
             if (viewName === 'catalog') {
                 loadCatalog();
-                ui.catalog.search.value = ""; // Limpa busca ao abrir
+                ui.catalog.search.value = ""; 
             }
         }
 
-        // --- AUTH UI LOGIC ---
         function showAuthMessage(msg, type = 'error') {
             ui.auth.message.textContent = msg;
             ui.auth.message.className = `mb-4 p-3 rounded-lg text-sm text-center font-medium ${type === 'error' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`;
@@ -625,9 +543,6 @@
         ui.auth.linkForgot.onclick = () => { ui.auth.message.classList.add('hidden'); ui.auth.formLogin.classList.add('hidden'); ui.auth.formReset.classList.remove('hidden'); };
         ui.auth.btnResetBack.onclick = () => { ui.auth.message.classList.add('hidden'); ui.auth.formReset.classList.add('hidden'); ui.auth.formLogin.classList.remove('hidden'); };
 
-        // --- AUTH BACKEND ---
-        
-        // 1. LOGIN
         ui.auth.formLogin.onsubmit = async (e) => {
             e.preventDefault();
             const email = ui.auth.loginEmail.value;
@@ -638,41 +553,39 @@
             try {
                 await signInWithEmailAndPassword(auth, email, pass);
             } catch (error) {
-                console.log("Falha no login:", error.code);
                 let msg = "Erro ao entrar.";
                 if(error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-                    msg = "Email ou senha incorretos. Você já criou sua conta?";
-                } else if(error.code === 'auth/too-many-requests') {
-                    msg = "Muitas tentativas. Tente novamente mais tarde.";
+                    msg = "Email ou senha incorretos.";
+                } else if(error.code === 'auth/operation-not-allowed') {
+                    msg = "Login por email não está habilitado. O login anônimo será usado.";
+                     await signInAnonymously(auth);
+                     return;
                 }
                 showAuthMessage(msg, 'error');
                 ui.auth.btnLogin.textContent = "Entrar";
             }
         };
 
-        // 2. REGISTRO
         ui.auth.formRegister.onsubmit = async (e) => {
             e.preventDefault();
             const email = ui.auth.regEmail.value;
             const pass = ui.auth.regPass.value;
             ui.auth.btnRegister.textContent = "Criando...";
             ui.auth.message.classList.add('hidden');
-
-            justRegistered = true; // Impede login automático
-
+            justRegistered = true; 
             try {
                 await createUserWithEmailAndPassword(auth, email, pass);
-                await signOut(auth); // Força logout imediato
-                
+                await signOut(auth); 
                 ui.auth.formRegister.classList.add('hidden');
                 ui.auth.formLogin.classList.remove('hidden');
                 showAuthMessage("Conta criada! Faça login para entrar.", "success");
-
             } catch (error) {
-                console.error(error);
                 let msg = "Erro ao criar conta.";
                 if(error.code === 'auth/email-already-in-use') msg = "Este email já está em uso.";
                 if(error.code === 'auth/weak-password') msg = "Senha muito fraca.";
+                 if(error.code === 'auth/operation-not-allowed') {
+                    msg = "Registro por email não habilitado.";
+                }
                 showAuthMessage(msg, 'error');
             } finally {
                 ui.auth.btnRegister.textContent = "Cadastrar";
@@ -680,7 +593,6 @@
             }
         };
 
-        // 3. RESET
         ui.auth.formReset.onsubmit = async (e) => {
             e.preventDefault();
             const email = ui.auth.resetEmail.value;
@@ -699,8 +611,7 @@
 
         onAuthStateChanged(auth, (user) => {
             currentUser = user;
-            if (justRegistered && user) return; // Se acabou de registrar, ignora
-
+            if (justRegistered && user) return; 
             if (user) {
                 switchView('home');
                 generateWineQuote();
@@ -709,7 +620,6 @@
             }
         });
 
-        // --- SCANNER ---
         ui.home.btnScan.onclick = () => switchView('scan');
         ui.scan.btnBack.onclick = () => switchView('home');
 
@@ -742,7 +652,16 @@
             ui.scan.resSection.classList.add('hidden');
         };
 
-        // --- WORKER / FALLBACK LOGIC ---
+        // --- Helper Function para Extrair JSON ---
+        function extractJSON(text) {
+            const start = text.indexOf('{');
+            const end = text.lastIndexOf('}');
+            if (start !== -1 && end !== -1) {
+                return text.substring(start, end + 1);
+            }
+            return text;
+        }
+
         ui.scan.btnSubmit.onclick = async () => {
             if (!base64Image) return;
             
@@ -752,15 +671,13 @@
             ui.scan.successMsg.classList.add('hidden');
             ui.scan.errorMsg.classList.add('hidden');
             
-            // JSON Schema para Prompt
             const promptText = `
-                Você é um sommelier. Analise o rótulo. Retorne JSON:
+                Você é um sommelier. Analise o rótulo. Retorne APENAS um objeto JSON válido (sem markdown, sem texto antes ou depois) com o seguinte formato:
                 { "nome": "...", "tipo": "...", "regiao": "...", "uvas": "...", "armazenamento": "...", "harmonizacao": "...", "notas": "..." }
             `;
 
             let data = null;
 
-            // 1. TENTA WORKER
             try {
                 console.log("Tentando Worker:", WORKER_URL);
                 const response = await fetch(WORKER_URL, {
@@ -778,14 +695,13 @@
                 
                 data = result;
                 if (result.text) {
-                      const cleanJson = result.text.replace(/```json/g, '').replace(/```/g, '').trim();
-                      data = JSON.parse(cleanJson);
+                      const jsonStr = extractJSON(result.text);
+                      data = JSON.parse(jsonStr);
                 }
 
             } catch (workerError) {
                 console.warn("Worker falhou, tentando Fallback API direta...", workerError);
                 
-                // 2. FALLBACK PARA API GOOGLE DIRETA (SE WORKER FALHAR)
                 try {
                     const fallbackPayload = {
                         contents: [{
@@ -806,20 +722,19 @@
                     
                     const fbResult = await fbResponse.json();
                     const text = fbResult.candidates[0].content.parts[0].text;
-                    const cleanJson = text.replace(/```json/g, '').replace(/```/g, '').trim();
-                    data = JSON.parse(cleanJson);
+                    const jsonStr = extractJSON(text);
+                    data = JSON.parse(jsonStr);
 
                 } catch (fbError) {
                     console.error("Erro fatal:", fbError);
                     alert("Erro ao identificar vinho. Verifique sua conexão.");
                     ui.scan.btnSubmit.disabled = false;
                     ui.scan.spinner.classList.add('hidden');
-                    ui.scan.btnText.textContent = "Identificar Vinho";
+                    ui.scan.btnText.textContent = "Identificar com VinoSense";
                     return;
                 }
             }
 
-            // SE SUCESSO EM ALGUM DOS DOIS
             if (data) {
                 ui.scan.fields.name.textContent = data.nome;
                 ui.scan.fields.type.textContent = data.tipo;
@@ -835,6 +750,7 @@
                 if (currentUser) {
                     try {
                         const thumb = await compressImage(base64Image);
+                        // VOLTANDO PARA CAMINHO REAL (users/wines)
                         const winesRef = collection(db, 'users', currentUser.uid, 'wines');
                         await addDoc(winesRef, { ...data, timestamp: serverTimestamp(), imageThumb: thumb });
                         ui.scan.successMsg.classList.remove('hidden');
@@ -847,7 +763,7 @@
             
             ui.scan.btnSubmit.disabled = false;
             ui.scan.spinner.classList.add('hidden');
-            ui.scan.btnText.textContent = "Identificar Vinho";
+            ui.scan.btnText.textContent = "Identificar com VinoSense";
         };
 
         async function compressImage(b64) {
@@ -864,11 +780,9 @@
             });
         }
 
-        // --- CATALOGO ---
         ui.home.btnCatalog.onclick = () => switchView('catalog');
         ui.catalog.btnClose.onclick = () => switchView('home');
 
-        // LOGICA DE BUSCA
         ui.catalog.search.addEventListener('keyup', (e) => {
             const term = e.target.value.toLowerCase();
             const filtered = allWinesData.filter(item => {
@@ -888,23 +802,27 @@
             
             if (catalogUnsubscribe) catalogUnsubscribe();
 
+            // VOLTANDO PARA CAMINHO REAL (users/wines)
             const winesRef = collection(db, 'users', currentUser.uid, 'wines');
-            const q = query(winesRef, orderBy('timestamp', 'desc'));
-
-            catalogUnsubscribe = onSnapshot(q, (snapshot) => {
+            
+            catalogUnsubscribe = onSnapshot(winesRef, (snapshot) => {
                 ui.catalog.loader.classList.add('hidden');
                 
-                // Atualiza dados locais
                 allWinesData = [];
                 snapshot.forEach(doc => allWinesData.push({ id: doc.id, ...doc.data() }));
 
-                // Renderiza tudo inicialmente
+                allWinesData.sort((a, b) => {
+                    const dateA = a.timestamp ? (a.timestamp.toDate ? a.timestamp.toDate() : new Date(a.timestamp)) : new Date(0);
+                    const dateB = b.timestamp ? (b.timestamp.toDate ? b.timestamp.toDate() : new Date(b.timestamp)) : new Date(0);
+                    return dateB - dateA; 
+                });
+
                 renderCatalog(allWinesData);
 
             }, (error) => {
                 console.error("Erro Snapshot:", error);
                 ui.catalog.loader.classList.add('hidden');
-                if (error.code === 'permission-denied') {
+                if (error.code === 'permission-denied' || error.message.includes('permission')) {
                     ui.catalog.permError.classList.remove('hidden');
                 }
             });
@@ -916,11 +834,9 @@
             ui.catalog.emptySearch.classList.add('hidden');
 
             if (items.length === 0) {
-                // Se a busca estiver vazia mas existirem dados globais, é filtro sem resultado
                 if (allWinesData.length > 0) {
                     ui.catalog.emptySearch.classList.remove('hidden');
                 } else {
-                    // Se não existem dados nenhuns
                     ui.catalog.empty.classList.remove('hidden');
                 }
                 return;
@@ -934,7 +850,7 @@
             div.className = "relative w-full pb-[130%] rounded-2xl overflow-hidden shadow-md bg-white cursor-pointer active:scale-95 transition-transform border border-gray-100";
             div.innerHTML = `
                 <img src="${item.imageThumb}" class="absolute inset-0 w-full h-full object-cover">
-                <div class="absolute inset-0 bg-gradient-to-t from-[#4a0404] via-transparent to-transparent opacity-90"></div>
+                <div class="absolute inset-0 bg-gradient-to-t from-[#80182a] via-transparent to-transparent opacity-90"></div>
                 <div class="absolute bottom-0 left-0 right-0 p-3">
                     <span class="text-[10px] bg-white/20 text-white px-2 py-0.5 rounded-sm uppercase tracking-wider mb-1 inline-block backdrop-blur-sm">${item.tipo || 'Vinho'}</span>
                     <h3 class="text-white text-sm font-bold truncate font-serif">${item.nome}</h3>
@@ -959,7 +875,6 @@
                 ui.detail.date.textContent = "Degustado em " + date.toLocaleDateString('pt-BR');
             }
 
-            // GERA LINKS DE MERCADOS
             const term = encodeURIComponent(item.nome + " vinho");
             ui.detail.markets.innerHTML = `
                 <a href="https://www.lidl.pt/q/search?q=${term}" target="_blank" class="market-btn market-lidl">
@@ -984,6 +899,7 @@
         ui.detail.btnDelete.onclick = async () => {
             if (!confirm("Remover?")) return;
             try {
+                // VOLTANDO PARA CAMINHO REAL (users/wines)
                 await deleteDoc(doc(db, 'users', currentUser.uid, 'wines', currentDetailId));
                 ui.detail.btnClose.click();
             } catch(e) {
