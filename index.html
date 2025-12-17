@@ -161,7 +161,7 @@
                 <h1 class="text-4xl font-bold tracking-tight mb-1">
                     <span class="text-vino">Vino</span><span class="text-sense">Sense</span>
                 </h1>
-                <p class="text-gray-400 font-serif italic text-sm"></p>
+                <p class="text-gray-400 font-serif italic text-sm">Inteligência para o seu paladar.</p>
             </div>
 
             <div class="glass-panel p-8 rounded-3xl shadow-2xl transition-all duration-300">
@@ -245,7 +245,7 @@
                     <div class="flex items-center justify-between">
                         <div class="text-left">
                             <h3 class="text-2xl font-bold font-serif mb-1">Ler Rótulo</h3>
-                            <p class="text-gray-300 text-sm"></p>
+                            <p class="text-gray-300 text-sm">IA Cognitiva</p>
                         </div>
                         <div class="w-12 h-12 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20"><i data-lucide="camera" class="w-6 h-6 text-gold"></i></div>
                     </div>
@@ -431,6 +431,8 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
         import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, deleteDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+        // --- NOVO: Importando funções do Storage ---
+        import { getStorage, ref, uploadString, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js";
 
         // ========================================================
         // 🛠️ CONFIGURAÇÃO DE IMAGENS (ALTERE AQUI!)
@@ -458,6 +460,8 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        // --- NOVO: Inicializando o Storage ---
+        const storage = getStorage(app);
 
         const WORKER_URL = "https://rotulos.lucasmaia2709.workers.dev";
         const API_KEY = ""; 
@@ -792,12 +796,38 @@
 
                 if (currentUser) {
                     try {
-                        const thumb = await compressImage(base64Image);
+                        const thumb = await compressImage(base64Image); // Isso retorna a string base64 "data:image/..."
+                        
+                        // --- NOVO: Lógica de Upload para o Storage (Atualizado para Email/Nome) ---
+                        const filename = Date.now() + '.jpg';
+                        
+                        // Ajuste solicitado: Users/ Email / Nome do vinho / Imagem
+                        // Sanitização básica para evitar erros no caminho (remove barras e caracteres estranhos)
+                        const userFolder = currentUser.email || currentUser.uid; 
+                        const wineFolder = (data.nome || 'SemNome').replace(/[\/\\#\?]/g, "_"); 
+
+                        // Cria referência: Users/email/nome_vinho/timestamp.jpg
+                        const storagePath = `Users/${userFolder}/${wineFolder}/${filename}`;
+                        const storageRef = ref(storage, storagePath);
+                        
+                        // Faz o upload da string base64
+                        await uploadString(storageRef, thumb, 'data_url');
+                        
+                        // Obtém o link público para download
+                        const downloadURL = await getDownloadURL(storageRef);
+
+                        // Salva no Firestore
                         const winesRef = collection(db, 'users', currentUser.uid, 'wines');
-                        await addDoc(winesRef, { ...data, timestamp: serverTimestamp(), imageThumb: thumb });
+                        await addDoc(winesRef, { 
+                            ...data, 
+                            timestamp: serverTimestamp(), 
+                            imageThumb: downloadURL, // Salva o Link
+                            storagePath: storageRef.fullPath // Salva o caminho para poder deletar depois
+                        });
+                        
                         ui.scan.successMsg.classList.remove('hidden');
                     } catch (fsError) {
-                        console.error("Erro Firestore:", fsError);
+                        console.error("Erro Firestore/Storage:", fsError);
                         ui.scan.errorMsg.classList.remove('hidden');
                     }
                 }
@@ -941,9 +971,24 @@
         ui.detail.btnDelete.onclick = async () => {
             if (!confirm("Remover?")) return;
             try {
+                // --- NOVO: Deletar Imagem do Storage ---
+                const item = allWinesData.find(i => i.id === currentDetailId);
+                
+                // Tenta deletar se tiver o caminho salvo
+                if (item && item.storagePath) {
+                    try {
+                        const imgRef = ref(storage, item.storagePath);
+                        await deleteObject(imgRef);
+                    } catch (storageErr) {
+                        console.error("Aviso: Imagem não encontrada ou erro ao deletar do Storage", storageErr);
+                    }
+                }
+
+                // Deleta o documento do Firestore
                 await deleteDoc(doc(db, 'users', currentUser.uid, 'wines', currentDetailId));
                 ui.detail.btnClose.click();
             } catch(e) {
+                console.error(e);
                 alert("Erro ao remover: Verifique suas permissões.");
             }
         };
